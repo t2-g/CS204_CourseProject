@@ -1,6 +1,6 @@
 x=[0]*32
 x[2]=int("0x7FFFFFF0",16) #sp - stack pointer
-x[3]=int("0x10000000",16) #
+x[3]=int("0x10000000",16) #the beginning address of data segment of memory
 
 clk=0
 
