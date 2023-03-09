@@ -13,4 +13,14 @@ ALUOp=[0]*26
 data_memory= defaultdict()
 instruction_memory=defaultdict()
 
+def fetch():
+    global IR,MAR,PC_Temp,PC
 
+    MAR=hex(PC)
+    ans = instruction_memory[MAR]
+    IR=""
+    z=len(ans)
+    for i in range(len(ans))
+        IR+=ans[z-i-1]
+    IR= '0X'+IR
+    PC_Temp=PC+4
