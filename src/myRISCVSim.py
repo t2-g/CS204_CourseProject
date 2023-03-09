@@ -1,4 +1,3 @@
-import sys
-
 x=[0]*32
-print("hello")
+x[2]=int("0x7FFFFFF0",16)
+x[3]=int("0x10000000",16)
