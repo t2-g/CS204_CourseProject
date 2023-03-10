@@ -16,6 +16,15 @@ data_memory= defaultdict()
 instruction_memory=defaultdict()
 
 def IAG():
+    global PC
+    if(MuxPC_select==0):
+        PC=RA
+    else:
+        if(MuxINC_select==0):
+            PC=PC+4
+        else:
+            PC=PC+immed
+
     global PC 
     if (MuxPC_select==0)
         PC=RA
@@ -39,9 +48,18 @@ def decode():
     ALUOp=[0]*26
     opcode = int(str(IR),16) & int("0x7f",16)
     fun3 = (int(str(IR),16) & int("0x7000",16)) >> 12
-
+    
     message=""
 
+
+def RegisterUpdate():
+
+def validateDataSegment(y):
+
+def validateInstruction(y):
+
+
+def main():
 def ImmediateSign(num):
     global immed
     if(immed & 2**(num-1)==0):
