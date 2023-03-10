@@ -14,7 +14,12 @@ ALUOp=[0]*26
 data_memory= defaultdict()
 instruction_memory=defaultdict()
 
-class 
+def IAG():
+    global PC 
+    if (MuxPC_select==0)
+        PC=RA
+    else:
+        if()
 
 def fetch():
     global IR,MAR,PC_Temp,PC
@@ -36,6 +41,12 @@ def decode():
 
     message=""
 
-def main():
+def ImmediateSign(num):
+    global immed
+    if(immed & 2**(num-1)==0):
+        return 
+    immed = immed^(2**num-1)
+    immed+=1
+    immed *= (-1)
 
-    
+
