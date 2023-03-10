@@ -24,6 +24,11 @@ def IAG():
         else:
             PC=PC+immed
 
+    global PC 
+    if (MuxPC_select==0)
+        PC=RA
+    else:
+        if()
 
 def fetch():
     global IR,MAR,PC_Temp,PC
@@ -54,5 +59,12 @@ def validateInstruction(y):
 
 
 def main():
+def ImmediateSign(num):
+    global immed
+    if(immed & 2**(num-1)==0):
+        return 
+    immed = immed^(2**num-1)
+    immed+=1
+    immed *= (-1)
 
-    
+
