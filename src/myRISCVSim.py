@@ -68,9 +68,28 @@ def decode():
     rd=binary_instruction[20:25]
 
 
-    # instruction_set_list=pd.read("src\Instruction_Set_List.csv")
+    instruction_set_list=pd.read("src\Instruction_Set_List.csv")
+# column 2 3 4
+    track=0
+    match_found=0
 
+    for ins in instruction_set_list:
+        if track == 0:
+            match_found = False
+        elif ins[4] != 'NA' and [int(ins[2], 2), int(ins[3], 2), int(ins[4], 2)] == [opcode, func3, func7]:
+            match_found = True
+        elif ins[4] == 'NA' and ins[3] != 'NA' and [int(ins[2], 2), int(ins[3], 2)] == [opcode, func3]:
+            match_found = True
+        elif ins[4] == 'NA' and ins[3] == 'NA' and int(ins[2], 2) == opcode:
+            match_found = True
+        if match_found:
+            break
+        track += 1
 
+    if not match_found:
+        print("ERROR: Unidentifiable machine code!\n")
+        swi_exit()
+        return
    
 
 
