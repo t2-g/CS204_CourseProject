@@ -9,7 +9,7 @@ clk=0
 instruction_memory=defaultdict(lambda:"00")
 data_memory=defaultdict(lambda:"00")
 
-global rs1,rs2,opcode,func3,func7,immB,immJ,immR,immS,immU,pc,Op2_Select,Mem_op,Result_select,Branch_trg_sel,is_branch
+global rs1,rs2,rd,opcode,func3,func7,immB,immJ,immR,immS,immU,pc,Op2_Select,Mem_op,Result_select,Branch_trg_sel,is_branch
 
 def read_from_file(file_name):
     flag=0
@@ -51,6 +51,13 @@ def fetch():
     binary_instruction=bin(int(IR,16))[2:]
     binary_instruction='0'*(32-len(binary_instruction))+binary_instruction
 def decode():
+    opcode=binary_instruction[25:]
+    func3=binary_instruction[17:20]
+    func7=binary_instruction[0:7]
+    rs2=binary_instruction[7:12]
+    rs1=binary_instruction[12:17]
+    rd=binary_instruction[20:25]
+    
 def execute():
 def memory_access():
 def write_back():
