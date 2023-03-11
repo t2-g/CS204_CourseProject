@@ -60,36 +60,31 @@ def fetch():
 
 def decode():
     #if condition to end 
-    opcode=binary_instruction[25:]
-    func3=binary_instruction[17:20]
-    func7=binary_instruction[0:7]
-    rs2=binary_instruction[7:12]
-    rs1=binary_instruction[12:17]
-    rd=binary_instruction[20:25]
+    opcode=int(binary_instruction[25:],2)
+    func3=int(binary_instruction[17:20],2)
+    func7=int(binary_instruction[0:7],2)
+    rs2=int(binary_instruction[7:12],2)
+    rs1=int(binary_instruction[12:17],2)
+    rd=int(binary_instruction[20:25],2)
 
 
-    instruction_set_list=pd.read("src\Instruction_Set_List.csv")
+    instruction_set=pd.read_csv("src\Instruction_Set_List.csv")
 # column 2 3 4
-    track=0
-    match_found=0
+    ALUop=0
+    flag=0
 
-    for ins in instruction_set_list:
-        if track == 0:
-            match_found = False
-        elif ins[4] != 'NA' and [int(ins[2], 2), int(ins[3], 2), int(ins[4], 2)] == [opcode, func3, func7]:
-            match_found = True
-        elif ins[4] == 'NA' and ins[3] != 'NA' and [int(ins[2], 2), int(ins[3], 2)] == [opcode, func3]:
-            match_found = True
-        elif ins[4] == 'NA' and ins[3] == 'NA' and int(ins[2], 2) == opcode:
-            match_found = True
-        if match_found:
-            break
-        track += 1
+   
 
-    if not match_found:
-        print("ERROR: Unidentifiable machine code!\n")
-        swi_exit()
+    if(instruction_set.loc[int(instruction_set['opcode'],2)==opcode and int(instruction_set['func3'],2)== func3 and instruction_set['func7']== "NA"] ):
+        ALUop=instruction_set.loc[int(instruction_set['opcode'],2)==opcode and int(instruction_set['func3'],2)== func3 and instruction_set['func7']== "NA"]
+    elif(instruction_set.loc[int(instruction_set['opcode'],2)==opcode and int(instruction_set['func3'],2)== func3 and int(instruction_set['func7'],2)== func7]):
+        ALUop=instruction_set.loc[int(instruction_set['opcode'],2)==opcode and int(instruction_set['func3'],2)== func3 and int(instruction_set['func7'],2)== func7]
+    else:
+        print("error wrong machine code\n")
+        exit(1)
         return
+        
+
    
 
 
