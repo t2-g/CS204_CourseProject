@@ -6,11 +6,13 @@ x[2]=int("0x7FFFFFF0",16) #sp - stack pointer
 x[3]=int("0x10000000",16) #the beginning address of data segment of memory
 
 
+pc=0
+clk=0
 
 instruction_memory=defaultdict(lambda:"00")
 data_memory=defaultdict(lambda:"00")
 
-global rs1,rs2,rd,opcode,func3,func7,immB,immJ,immR,immS,immU,pc,Op2_Select,Mem_op,ALU_op,Result_select,Branch_trg_sel,is_branch,RFWrite,clk
+global rs1,rs2,rd,opcode,func3,func7,immB,immJ,immR,immS,immU,Op2_Select,Mem_op,ALU_op,Result_select,Branch_trg_sel,is_branch,RFWrite
 
 def read_from_file(file_name):
     flag=0
@@ -29,7 +31,7 @@ def read_from_file(file_name):
                 instruction_memory[mem_location + 3] = instruction[8:10]
             if tmp[1]=='$':
                 flag=1
-            if flag==1:
+            elif flag==1:
                 mem_location = int(address[2:], 16)
                 data_memory[mem_location] =  instruction[2:4]
                 data_memory[mem_location + 1] = instruction[4:6]
@@ -41,13 +43,13 @@ def read_from_file(file_name):
         exit(1)
 
 
-def control_signal(_Op2_Select,_Mem_op,_Result_select,_Branch_trg_sel,_is_branch,RFWrite):
+def control_signal(_Op2_Select,_Mem_op,_Result_select,_Branch_trg_sel,_is_branch,_RFWrite):
     Op2_Select=_Op2_Select
     Mem_op=_Mem_op
     Result_select=_Result_select
     Branch_trg_sel=_Branch_trg_sel
     is_branch=_is_branch
-    RFWrite=RFWrite
+    RFWrite=_RFWrite
    
 
 def fetch():
