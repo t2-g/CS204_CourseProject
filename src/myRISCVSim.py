@@ -9,8 +9,7 @@ clk=0
 instruction_memory=defaultdict(lambda:[0,0,0,0])
 data_memory=defaultdict(lambda:[0,0,0,0])
 
-global rs1,rs2,opcode,func3,func7,immB,immJ,immR,immS,immU,alu_result,pc
+global rs1,rs2,opcode,func3,func7,immB,immJ,immR,immS,immU,pc
 
 def fetch():
-
 
