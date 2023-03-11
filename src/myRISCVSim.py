@@ -12,26 +12,33 @@ data_memory=defaultdict(lambda:"00")
 global rs1,rs2,opcode,func3,func7,immB,immJ,immR,immS,immU,pc,Op2_Select,Mem_op,Result_select,Branch_trg_sel,is_branch
 
 def read_from_file(file_name):
+    flag=0
     try:
         file = open(file_name, 'r')
-        for line in file:
-            tmp = line.split()
-            if len(tmp) == 2:
-                address, instruction = tmp[0], tmp[1]
-                mem_location = int(address[2:], 16)
-                instruction_memory[mem_location] =  instruction[2:4]
-                instruction_memory[mem_location + 1] = instruction[4:6]
-                instruction_memory[mem_location + 2] = instruction[6:8]
-                instruction_memory[mem_location + 3] = instruction[8:10]
+        if flag==0:
+            for line in file:
+                tmp = line.split()
+                if len(tmp) == 2:
+                    address, instruction = tmp[0], tmp[1]
+                    mem_location = int(address[2:], 16)
+                    instruction_memory[mem_location] =  instruction[2:4]
+                    instruction_memory[mem_location + 1] = instruction[4:6]
+                    instruction_memory[mem_location + 2] = instruction[6:8]
+                    instruction_memory[mem_location + 3] = instruction[8:10]
         file.close()
     except:
-        print("ERROR: Error opening input .mc file\n")
+        print("Error opening input .mc file\n")
         exit(1)
 
+def control_signal(_Op2_Select,_Mem_op,_Result_select,_Branch_trg_sel,_is_branch):
+    Op2_Select=_Op2_Select
+    Mem_op=_Mem_op
+    Result_select=_Result_select
+    Branch_trg_sel=_Branch_trg_sel
+    is_branch=_is_branch
 
-
-def control_signal():
 def fetch():
+    IR='0x'+instruction_memory[pc]+instruction_memory[pc+]
 def decode():
 def execute():
 def memory_access():
