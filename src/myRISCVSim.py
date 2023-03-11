@@ -38,7 +38,8 @@ def control_signal(_Op2_Select,_Mem_op,_Result_select,_Branch_trg_sel,_is_branch
     is_branch=_is_branch
 
 def fetch():
-    IR='0x'+instruction_memory[pc]+instruction_memory[pc+]
+    IR='0x'+instruction_memory[pc]+instruction_memory[pc+1]+instruction_memory[pc+2]+instruction_memory[pc+3]
+    binary_instruction=bin(int(IR,16))
 def decode():
 def execute():
 def memory_access():
