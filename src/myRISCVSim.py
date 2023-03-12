@@ -12,7 +12,7 @@ clk=0
 instruction_memory=defaultdict(lambda:"00")
 data_memory=defaultdict(lambda:"00")
 
-global rs1,rs2,rd,opcode,func3,func7,immB,immJ,immR,immS,immU,Op2_Select,Mem_op,ALU_op,Result_select,Branch_trg_sel,is_branch,RFWrite,mem_read,mem_write
+global rs1,rs2,rd,opcode,func3,func7,immB,immJ,immI,immS,immU,Op2_Select,Mem_op,ALU_op,Result_select,Branch_trg_sel,is_branch,RFWrite,mem_read,mem_write
 
 def read_from_file(file_name):
     flag=0
