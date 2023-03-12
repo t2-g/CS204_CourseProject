@@ -11,8 +11,8 @@ clk = 0
 
 instruction_memory = defaultdict(lambda: "00")
 data_memory = defaultdict(lambda: "00")
+global rs1, rs2, rd, opcode, func3, func7, immB, immJ, immI, immS, immU, Op2_Select, Mem_op, ALUop, Result_select, Branch_trg_sel, is_branch, RFWrite, mem_read, mem_write
 
-global rs1,rs2,rd,opcode,func3,func7,immB,immJ,immI,immS,immU,Op2_Select,Mem_op,ALU_op,Result_select,Branch_trg_sel,is_branch,RFWrite,mem_read,mem_write
 
 def read_from_file(file_name):
     flag = 0
@@ -58,7 +58,7 @@ def control_signal(_ALUop, _Op2_Select, _Mem_op, _mem_read, _mem_write, _Result_
 
 def fetch():
     global binary_instruction
-    IR = '0x'+instruction_memory[pc]+instruction_memory[pc+1] + instruction_memory[pc+2]+instruction_memory[pc+3]
+    IR = '0x'+instruction_memory[pc]+instruction_memory[pc +1] + instruction_memory[pc+2]+instruction_memory[pc+3]
     binary_instruction = bin(int(IR, 16))[2:]
     binary_instruction = '0'*(32-len(binary_instruction))+binary_instruction
 
@@ -223,54 +223,54 @@ def execute():
 
     if (ALUop == 0):  # add instruction
         rm = hex(op1 + op2)
-        print("EXECUTE ", "ADD", int(op1, 16), "and", int(op2, 16))
+        print("EXECUTE: ", "ADD", op1, "and", op2)
     elif (ALUop == 1):  # sub instruction
-        rm = hex(int(op1, 16)) - hex(int(op2, 16))
-        print("EXECUTE ", "SUB", int(rs1, 16), "and", int(rs2, 16))
+        rm = hex(op1 - op2)
+        print("EXECUTE: ", "SUB", op1, "and", op2)
     elif (ALUop == 2):  # xor
-        rm = hex(int(int(op1, 16))) ^ hex(int(int(rs2, 16)))
-        print("EXECUTE ", "XOR", int(rs1, 16), "and", int(rs2, 16))
+        rm = hex(op1) ^ hex(op2)
+        print("EXECUTE: ", "XOR", op1, "and", op2)
     elif (ALUop == 3):  # or
-        rm = hex(int(int(op1, 16))) | hex(int(int(rs2, 16)))
-        print("EXECUTE ", "OR", int(rs1, 16), "and", int(rs2, 16))
+        rm = hex(op1) | hex(op2)
+        print("EXECUTE: ", "OR", op1, "and", op2)
     elif (ALUop == 4):  # and
-        rm = hex(int(int(op1, 16))) & hex(int(int(rs2, 16)))
-        print("EXECUTE ", "AND", int(rs1, 16), "and", int(rs2, 16))
+        rm = hex(op1) & hex(op2)
+        print("EXECUTE: ", "AND", op1, "and", op2)
     elif (ALUop == 5):  # sll
-        if (int(op2, 16) < 0):
+        if (op2 < 0):
             print("ERROR: Shift by negative!\n")
             exit(1)
-            return
+            
         else:
-            rm = hex(int(int(op1, 16) << int(op2, 16)))
-            print("EXECUTE:", "SLL", int(op1, 16), "and", int(op2, 16))
+            rm = hex(op1<<op2)
+            print("EXECUTE: ", "SLL", op1, "and", op2)
     elif (ALUop == 6):  # srl
-        if (int(op2, 16) < 0):
+        if (op2 < 0):
             print("ERROR: Shift by negative!\n")
             exit(1)
-            return
+            
         else:
-            rm = hex(int(op1, 16) >> int(op2, 16))
-            print("EXECUTE:", "SRL", int(op1, 16), "and", int(op2, 16))
+            rm = hex(op1>>op2)
+            print("EXECUTE: ", "SRL", op1, "and", op2)
         return
     elif (ALUop == 7):  # sra
-        if (int(op2, 16) < 0):
+        if (op2 < 0):
             print("ERROR: Shift by negative!\n")
             exit(1)
-            return
+           
         else:
-            rm = bin(int(int(op1, 16) >> int(op2, 16)))
+            rm = bin(op1 >> op2)
             if op1[2] == '8' or op1[2] == '9' or op1[2] == 'a' or op1[2] == 'b' or op1[2] == 'c' or op1[2] == 'd' or op1[2] == 'e' or op1[2] == 'f':
                 rm = '0b' + (34 - len(rm)) * '1' + rm[2:]
             rm = hex(int(rm, 2))
-            print("EXECUTE:", "SRA", int(op1, 16), "and", int(op2, 16))
+            print("EXECUTE:", "SRA" op1, "and", op2)
         return
     elif (ALUop == 8):  # slt
-        if (int(op1, 16) < int(op2, 16)):
+        if (op1<op2):
             rm = hex(1)
         else:
             rm = hex(0)
-        print("EXECUTE:", "SLT", int(op1, 16), "and", int(op2, 16))
+        print("EXECUTE:", "SLT", op1, "and", op2)
         return
     elif (ALUop == 9):  # addi
         rm = hex(op1+op2)
@@ -278,69 +278,122 @@ def execute():
         return
 
     elif (ALUop == 10):  # ori
-        rm = hex(int(op1, 16) | int(op2, 2, len(op2)))
-        print("EXECUTE: ORI", int(op1, 16), "and", int(op2, 2, len(op2)))
+        rm = hex(op1 | op2)
+        print("EXECUTE: ORI", op1, "and", op2)
         return
-    
-    elif (ALUop == 11):  # andi
-        rm = hex(int(op1, 16) | int(op2, 2, len(op2)))
-        print("EXECUTE: ANDI", int(op1, 16), "and", int(op2, 2, len(op2)))
-        return
-    elif(ALUop==12): #lb
-        mem_address=int(op1,16)+int(op2,2,len(op2))
-        print("EXECUTE: ADD", int(op1), "and", int(op2, 2, len(op2)))
-    elif(ALUop==13): #lh
 
+    elif (ALUop == 11):  # andi
+        rm = hex(op1 & op2)
+        print("EXECUTE: ORI", op1, "and", op2)
         return
-    elif(ALUop==13):
+    elif (ALUop == 12):  # lb
+        mem_address = op1 + op2
+        print("EXECUTE: ADD", op1, "and", op2)
+    elif (ALUop == 13):  # lh
+        mem_address = op1 + op2
+        print("EXECUTE: ADD", op1, "and", op2)
         return
-    elif(ALUop==14):
+    elif (ALUop == 14):  # lw
+        mem_address = op1 + op2
+        print("EXECUTE: ADD", op1, "and", op2)
         return
-    elif(ALUop==15):
+    elif (ALUop == 15):  # sb
+        mem_address = op1 + op2
+        rs2 = hex(rs2)
+        print("EXECUTE: ADD", op1, "and", op2)
         return
-    elif (ALUop == 16):
+    elif (ALUop == 16):  # sh
+        mem_address = op1 + op2
+        rs2 = hex(rs2)
+        print("EXECUTE: ADD", op1, "and", op2)
         return
-    elif (ALUop == 17):
+    elif (ALUop == 17):  # sw
+        mem_address = op1 + op2
+        rs2 = hex(rs2)
+        print("EXECUTE: ADD", op1, "and", op2)
         return
-    elif (ALUop == 18):
+    elif (ALUop == 18):  # beq
+        if(op1==op2):
+            Branch_trg_sel=1
+            is_branch=1
+            pc+=immB
+        print("EXECUTE: BEQ", op1, "and", op2)
         return
-    elif (ALUop == 19):
+    elif (ALUop == 19):  # bne
+        if (op1 != op2):
+            Branch_trg_sel = 1
+            is_branch = 1
+            pc += immB
+        print("EXECUTE: BNE", op1, "and", op2)
         return
-    elif (ALUop == 20):
+       
+    elif (ALUop == 20):  # blt
+        if (op1 < op2):
+            Branch_trg_sel = 1
+            is_branch = 1
+            pc += immB
+        print("EXECUTE: BLT", op1, "and", op2)
         return
-    elif (ALUop == 21):
+
+    elif (ALUop == 21):  # bge
+        if (op1 >= op2):
+            Branch_trg_sel = 1
+            is_branch = 1
+            pc += immB
+        print("EXECUTE: BGE", op1, "and", op2)
         return
-    elif (ALUop == 22):
+    elif (ALUop == 22):  # jal
+        
         return
-    elif (ALUop == 23):
+    elif (ALUop == 23):  # jalr
         return
-    elif (ALUop == 24):
+    elif (ALUop == 24):  # lui
         return
-    elif (ALUop == 25):
+    elif (ALUop == 25):  # auipc
         return
+
     else:
         return
 
 
 def memory_access():
-     if(ALUop == 12):
-        ma = data_memory[rm] + data_memory[rm+1]
+    if(memory_access == 0):
+        return
+    rm = mem_address
+    if (ALUop == 12): # lb
+        ma = data_memory[rm] 
         print("MEMORY ACCESSING: LOAD BYTE", ma, " from ", rm)
         return
-    if(ALUop == 13):
-        ma=data_memory[rm] + data_memory[rm+1] + data_memory[rm+2]
+    elif (ALUop == 13): #lh
+        ma = data_memory[rm] + data_memory[rm+1]
         print("MEMORY ACCESSING: LOAD HALFWORD", ma, " from ", rm)
         return
-    if(ALUop == 13):
-        ma=data_memory[rm] + data_memory[rm+1] + data_memory[rm+2] + data_memory[rm+3]
+    elif (ALUop == 14): #lw
+        ma = data_memory[rm] + data_memory[rm+1] + data_memory[rm+2] + data_memory[rm+3]
         print("MEMORY ACCESSING: LOAD WORD", ma, " from ", rm)
         return
-    
-    
-        
-    
+    elif (ALUop == 15): #sb
+        data_memory[rm] = rs2[0:2]
+        print("MEMORY ACCESSING: STORE BYTE", rs2, " to ", rm)
+        return
+    elif (ALUop == 16): #sh
+        data_memory[rm] = rs2[0:2]
+        data_memory[rm+1] = rs2[2:4]
+        print("MEMORY ACCESSING: STORE HALFWORD", rs2, " to ", rm)
+        return
+    elif (ALUop == 17): #sw
+        data_memory[rm] = rs2[0:2]
+        data_memory[rm+1] = rs2[2:4]
+        data_memory[rm+2] = rs2[4:6]
+        data_memory[rm+3] = rs2[6:8]
+        print("MEMORY ACCESSING: STORE WORD", rs2, " to ", rm)
+        return
+
 
 def write_back():
+    if(RFWrite == 0):
+        return
+    
     return
 
 
