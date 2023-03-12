@@ -1,17 +1,19 @@
+"""
+""""""
+"""
 from collections import defaultdict
 import pandas as pd
 
-x = [0]*32
-x[2] = int("0x7FFFFFF0", 16)  # sp - stack pointer
-x[3] = int("0x10000000", 16)  # the beginning address of data segment of memory
+x = ["0x00000000"]*32
+x[2] = "0x7FFFFFF0" # sp - stack pointer
+x[3] = "0x10000000"  # the beginning address of data segment of memory
 
-op2select_mux = []
-pc = 0
+global pc,clk
+pc=0
 clk = 0
 
 instruction_memory = defaultdict(lambda: "00")
 data_memory = defaultdict(lambda: "00")
-global rs1, rs2, rd, opcode, func3, func7, immB, immJ, immI, immS, immU, Op2_Select, Mem_op, ALUop, Result_select, Branch_trg_sel, is_branch, RFWrite, mem_read, mem_write, pc_new
 
 
 def read_from_file(file_name):
@@ -40,7 +42,7 @@ def read_from_file(file_name):
         file.close()
     except:
         print("Error opening input .mc file\n")
-        exit(1)
+        return
 
 
 def control_signal(_ALUop, _Op2_Select, _Mem_op, _mem_read, _mem_write, _Result_select, _Branch_trg_sel, _is_branch, _RFWrite):
@@ -61,10 +63,6 @@ def fetch():
     IR = '0x'+instruction_memory[pc]+instruction_memory[pc +1] + instruction_memory[pc+2]+instruction_memory[pc+3]
     binary_instruction = bin(int(IR, 16))[2:]
     binary_instruction = '0'*(32-len(binary_instruction))+binary_instruction
-
-# def hex_negative():
-
-# def int_negative():
 
 
 def decode():
@@ -107,7 +105,7 @@ def decode():
                            [8], control_file["Result_select"][8], control_file["Branch_trg_sel"][8], control_file["is_branch"][8], control_file["RFWrite"][8])
         else:
             print("Invalid instruction")
-            exit(1)
+            return
     elif opcode == 19:
         if func3 == 0:
             control_signal(control_file["ALUop"][9], control_file["Op2_Select"][9], control_file["Mem_op"][9], control_file["Mem_read"][9], control_file["Mem_write"]
@@ -120,7 +118,7 @@ def decode():
                            [11], control_file["Result_select"][11], control_file["Branch_trg_sel"][11], control_file["is_branch"][11], control_file["RFWrite"][11])
         else:
             print("Invalid instruction")
-            exit(1)
+            return
     elif opcode == 3:
         if func3 == 0:
             control_signal(control_file["ALUop"][12], control_file["Op2_Select"][12], control_file["Mem_op"][12], control_file["Mem_read"][12], control_file["Mem_write"]
@@ -133,7 +131,7 @@ def decode():
                            [14], control_file["Result_select"][14], control_file["Branch_trg_sel"][14], control_file["is_branch"][14], control_file["RFWrite"][14])
         else:
             print("Invalid Instruction")
-            exit(1)
+            return
     elif opcode == 35:
         if func3 == 0:
             control_signal(control_file["ALUop"][15], control_file["Op2_Select"][15], control_file["Mem_op"][15], control_file["Mem_read"][15], control_file["Mem_write"]
@@ -146,7 +144,7 @@ def decode():
                            [17], control_file["Result_select"][17], control_file["Branch_trg_sel"][17], control_file["is_branch"][17], control_file["RFWrite"][17])
         else:
             print("Invalid Instruction")
-            exit(1)
+            return
     elif opcode == 99:
         if func3 == 0:
             control_signal(control_file["ALUop"][18], control_file["Op2_Select"][18], control_file["Mem_op"][18], control_file["Mem_read"][18], control_file["Mem_write"]
@@ -162,7 +160,7 @@ def decode():
                            [21], control_file["Result_select"][21], control_file["Branch_trg_sel"][21], control_file["is_branch"][21], control_file["RFWrite"][21])
         else:
             print("Invalid Instruction")
-            exit(1)
+            return
     elif opcode == 111:
         control_signal(control_file["ALUop"][22], control_file["Op2_Select"][22], control_file["Mem_op"][22], control_file["Mem_read"][22], control_file["Mem_write"]
                        [22], control_file["Result_select"][22], control_file["Branch_trg_sel"][22], control_file["is_branch"][22], control_file["RFWrite"][22])
@@ -177,7 +175,7 @@ def decode():
                        [25], control_file["Result_select"][25], control_file["Branch_trg_sel"][25], control_file["is_branch"][25], control_file["RFWrite"][25])
     else:
         print("Invalid instruction")
-        exit(1)
+        return
 
 
 def sign_extend():
@@ -187,44 +185,61 @@ def sign_extend():
     # S-Type
     tempS = binary_instruction[0:7] + binary_instruction[20:25]
     # B-Type
-    tempB = binary_instruction[0] + binary_instruction[24] + \
-        binary_instruction[2:7] + binary_instruction[20:24] + '0'
+    tempB = binary_instruction[0] + binary_instruction[24] +binary_instruction[2:7] + binary_instruction[20:24] + '0'
     # U-Type
     tempU = binary_instruction[0:20]
     # J-Type
     tempJ = binary_instruction[0] + binary_instruction[12:20] + \
         binary_instruction[11] + binary_instruction[1:11] + '0'
 
-    if tempI[:-1] == '0' or tempS[:-1] == '0' or tempB[:-1] == '0' or tempU[:-1] == '0' or tempJ[:-1] == '0':
-        immI = int('0'*(32-len(tempI)), 2)
-        immS = int('0'*(32-len(tempS)), 2)
-        immB = int('0'*(32-len(tempB)), 2)
-        immU = int('0'*(32-len(tempU)), 2)
-        immJ = int('0'*(32-len(tempJ)), 2)
-    elif tempI[:-1] == '1' or tempS[:-1] == '1' or tempB[:-1] == '1' or tempU[:-1] == '1' or tempJ[:-1] == '1':
-        immI = int('1'*(32-len(tempI)), 2)
-        immS = int('1'*(32-len(tempS)), 2)
-        immB = int('1'*(32-len(tempB)), 2)
-        immU = int('1'*(32-len(tempU)), 2)
-        immJ = int('1'*(32-len(tempJ)), 2)
+    if tempI[0] == '0' or tempS[0] == '0' or tempB[0] == '0' or tempU[0] == '0' or tempJ[0] == '0':
+        immI = '0'*(32-len(tempI))+tempI
+        immS = '0'*(32-len(tempS))+tempS
+        immB = '0'*(32-len(tempB))+tempB
+        immU = tempU + '0'*12
+        immJ = '0'*(32-len(tempJ))+tempJ
+    elif tempI[0] == '1' or tempS[0] == '1' or tempB[0] == '1' or tempU[0] == '1' or tempJ[0] == '1':
+        immI = '1'*(32-len(tempI))+tempI
+        immS = '1'*(32-len(tempS))+tempS
+        immB = '1'*(32-len(tempB))+tempB
+        immU = tempU + '0'*12
+        immJ = '1'*(32-len(tempJ))+tempJ
 
 
 def execute():
-
-    global rm, op1, op2, mem_address,is_branch,Branch_trg_sel,offset,Branch_target_add
-    op1 = rs1
+    global rm, op1, op2,is_branch,Branch_trg_sel,offset,Branch_target_add,num_b,pc_new
+    pc_new=pc+4
+    op1 = int(x[rs1],16)
     if Op2_Select == 0:
-        op2 = rs2
+        op2 = int(x[rs2],16)
     elif Op2_Select == 1:
-        op2 = immI
+        if(immI[0]=='0'):
+            immI=int(immI,2)
+        else:
+            immI=int(immI,2)-4294967296
     else:
-        op2 = immS
+        if(immS[0]=='0'):
+            immS=int(immS,2)
+        else:
+            immS=int(immS,2)-4294967296
     
     if Branch_trg_sel==0:
+        if(immB[0]=='0'):
+            immB=int(immB,2)
+        else:
+            immB=int(immB,2)-4294967296
         offset=immB
     else:
+        if(immJ[0]=='0'):
+            immJ=int(immJ,2)
+        else:
+            immJ=int(immJ,2)-4294967296
         offset=immJ
-
+    if(immU[0]=='0'):
+        immU=int(immU,2)
+    else:
+        immU=int(immU,2)-4294967296
+        
     if (ALUop == 0):  # add instruction
         rm = hex(op1 + op2)
         print("EXECUTE: ", "ADD", op1, "and", op2)
@@ -243,14 +258,14 @@ def execute():
     elif (ALUop == 5):  # sll
         if (op2 < 0 | op2>31):
             print("ERROR: Shift by negative!\n")
-            exit(1)
+            return
         else:
             rm = hex(op1<<op2)
             print("EXECUTE: ", "SLL", op1, "and", op2)
     elif (ALUop == 6):  # srl
         if (op2 < 0| op2>31):
             print("ERROR: Shift by negative!\n")
-            exit(1)            
+            return            
         else:
             if op1>=0:
                 rm=hex(op1>>op2)
@@ -261,7 +276,7 @@ def execute():
     elif (ALUop == 7):  # sra
         if (op2 < 0 | op2>31):
             print("ERROR: Shift by negative!\n")
-            exit(1)
+            return
         else:
             rm=op1>>op2
         return
@@ -288,28 +303,34 @@ def execute():
         return
     elif (ALUop == 12):  # lb
         rm = op1 + op2
+        num_b=1
         print("EXECUTE: ADD", op1, "and", op2)
     elif (ALUop == 13):  # lh
         rm = op1 + op2
+        num_b=2
         print("EXECUTE: ADD", op1, "and", op2)
         return
     elif (ALUop == 14):  # lw
         rm = op1 + op2
+        num_b=4
         print("EXECUTE: ADD", op1, "and", op2)
         return
     elif (ALUop == 15):  # sb
         rm = op1 + op2
+        num_b=1
         rs2 = hex(rs2)
         print("EXECUTE: ADD", op1, "and", op2)
         return
     elif (ALUop == 16):  # sh
         rm = op1 + op2
+        num_b=2
         rs2 = hex(rs2)
         print("EXECUTE: ADD", op1, "and", op2)
         return
     elif (ALUop == 17):  # sw
         rm = op1 + op2
         rs2 = hex(rs2)
+        num_b=4
         print("EXECUTE: ADD", op1, "and", op2)
         return
     elif (ALUop == 18):  # beq
@@ -341,88 +362,100 @@ def execute():
     
     elif (ALUop == 22):  # jal
         rm=pc+4
-        Branch_target_add=pc+offset
+        pc=pc+offset
         return
     elif (ALUop == 23):  # jalr
         rm=pc+4
-        Branch_target_add=rs1+op2
+        pc=rs1+op2
         return
     elif (ALUop == 24):  # lui
-        rm=immU<<12        
+        rm=immU        
         return
     elif (ALUop == 25):  # auipc
-        rm=pc+immU<<12
+        rm=immU
+        is_branch=2
         return
     else:
         print("error: no matching ALU operation is possible for this instruction")
         
 
 def memory_access():
-    if(memory_access == 0):
-        return
-    
+    if(Mem_op == 0):
+        print("no memory operation")
+        return    
     global ma
-    if (ALUop == 12): # lb
-        ma = data_memory[rm] 
-        print("MEMORY ACCESSING: LOAD BYTE", ma, " from ", rm)
-        return
-    elif (ALUop == 13): #lh
-        ma = data_memory[rm] + data_memory[rm+1]
-        print("MEMORY ACCESSING: LOAD HALFWORD", ma, " from ", rm)
-        return
-    elif (ALUop == 14): #lw
-        ma = data_memory[rm] + data_memory[rm+1] + data_memory[rm+2] + data_memory[rm+3]
-        print("MEMORY ACCESSING: LOAD WORD", ma, " from ", rm)
-        return
-    elif (ALUop == 15): #sb
-        data_memory[rm] = rs2[0:2]
-        print("MEMORY ACCESSING: STORE BYTE", rs2, " to ", rm)
-        return
-    elif (ALUop == 16): #sh
-        data_memory[rm] = rs2[0:2]
-        data_memory[rm+1] = rs2[2:4]
-        print("MEMORY ACCESSING: STORE HALFWORD", rs2, " to ", rm)
-        return
-    elif (ALUop == 17): #sw
-        data_memory[rm] = rs2[0:2]
-        data_memory[rm+1] = rs2[2:4]
-        data_memory[rm+2] = rs2[4:6]
-        data_memory[rm+3] = rs2[6:8]
-        print("MEMORY ACCESSING: STORE WORD", rs2, " to ", rm)
-        return
+    if mem_read==1:
+        if (num_b==1): # lb
+            ma = data_memory[hex(rm)] 
+            print("MEMORY ACCESSING: LOAD BYTE", ma, " from ", rm)
+            return
+        elif (num_b==2): #lh
+            ma = data_memory[hex(rm)] + data_memory[hex(rm+1)]
+            print("MEMORY ACCESSING: LOAD HALFWORD", ma, " from ", rm)
+            return
+        elif (num_b==4): #lw
+            ma = data_memory[hex(rm)] + data_memory[hex(rm+1)] + data_memory[hex(rm+2)] + data_memory[hex(rm+3)]
+            print("MEMORY ACCESSING: LOAD WORD", ma, " from ", rm)
+            return
+        else:
+            print("Invalid Memory operation")
+    else:
+        if (num_b==1): #sb
+            data_memory[hex(rm)] = rs2[2:4]
+            print("MEMORY ACCESSING: STORE BYTE", rs2, " to ", rm)
+            return
+        elif (num_b==2): #sh
+            data_memory[hex(rm)] = rs2[2:4]
+            data_memory[hex(rm+1)] = rs2[4:6]
+            print("MEMORY ACCESSING: STORE HALFWORD", rs2, " to ", rm)
+            return
+        elif (num_b==4): #sw
+            data_memory[hex(rm)] = rs2[2:4]
+            data_memory[hex(rm+1)] = rs2[4:6]
+            data_memory[hex(rm+2)] = rs2[6:8]
+            data_memory[hex(rm+3)] = rs2[8:10]
+            print("MEMORY ACCESSING: STORE WORD", rs2, " to ", rm)
+            return
+        else:
+            print("Invalid Memory operation")
 
 
 def write_back():
-    pc_new=pc+4
-
-    if(RFWrite == 0):
-        return
     global result_write
-    if(Result_select == 0):
-        result_write = rm
-    if (Result_select == 1):
-        result_write = ma
-    if (Result_select == 2):
-        result_write = immU
-    if(Result_select == 3):
-        result_write = pc + 4
-    x[rd] = result_write
+    if(RFWrite==1):
+        if(Result_select == 0):
+            result_write = rm
+        elif (Result_select == 1):
+            result_write = ma
+        elif (Result_select == 2):
+            result_write = immU
+        elif(Result_select == 3):
+            result_write = pc_new
+        x[rd] = result_write
+        
+    if is_branch==0:
+        pc=pc_new
+    elif is_branch==1:
+        pc=Branch_target_add
+    else:
+        pc=hex(rm)
     print("WRITING REGISTER FILE ", rd, " with ", result_write)
     return
 
+def terminate():
+    if(instruction_memory[pc]+instruction_memory[pc+1]+instruction_memory[pc+2]+instruction_memory[pc+3]):
+        exit(1)
 
 if __name__ == "__main__":
     while (True):
         fetch()
         decode()
         if terminate:
-            return
+            exit(1)
         execute()
         if terminate:
-            return
+            exit(1)
         memory_access()
         write_back()
         clk += 1
-        if clk > 16:
-            return
         print("Clock CYCLE:", clk, '\n')
