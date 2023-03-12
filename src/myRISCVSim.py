@@ -11,7 +11,7 @@ clk = 0
 
 instruction_memory = defaultdict(lambda: "00")
 data_memory = defaultdict(lambda: "00")
-global rs1, rs2, rd, opcode, func3, func7, immB, immJ, immI, immS, immU, Op2_Select, Mem_op, ALUop, Result_select, Branch_trg_sel, is_branch, RFWrite, mem_read, mem_write
+global rs1, rs2, rd, opcode, func3, func7, immB, immJ, immI, immS, immU, Op2_Select, Mem_op, ALUop, Result_select, Branch_trg_sel, is_branch, RFWrite, mem_read, mem_write, pc_new
 
 
 def read_from_file(file_name):
@@ -211,15 +211,19 @@ def sign_extend():
 
 def execute():
 
-    global rm, op1, op2, mem_address
+    global rm, op1, op2, mem_address,is_branch,Branch_trg_sel,offset,Branch_target_add
     op1 = rs1
-    op2 = op2select_mux
     if Op2_Select == 0:
         op2 = rs2
     elif Op2_Select == 1:
         op2 = immI
     else:
         op2 = immS
+    
+    if Branch_trg_sel==0:
+        offset=immB
+    else:
+        offset=immJ
 
     if (ALUop == 0):  # add instruction
         rm = hex(op1 + op2)
@@ -228,42 +232,38 @@ def execute():
         rm = hex(op1 - op2)
         print("EXECUTE: ", "SUB", op1, "and", op2)
     elif (ALUop == 2):  # xor
-        rm = hex(op1) ^ hex(op2)
+        rm = hex(op1^op2)
         print("EXECUTE: ", "XOR", op1, "and", op2)
     elif (ALUop == 3):  # or
-        rm = hex(op1) | hex(op2)
+        rm = hex(op1|op2)
         print("EXECUTE: ", "OR", op1, "and", op2)
     elif (ALUop == 4):  # and
-        rm = hex(op1) & hex(op2)
+        rm = hex(op1 & op2)
         print("EXECUTE: ", "AND", op1, "and", op2)
     elif (ALUop == 5):  # sll
-        if (op2 < 0):
+        if (op2 < 0 | op2>31):
             print("ERROR: Shift by negative!\n")
             exit(1)
-            
         else:
             rm = hex(op1<<op2)
             print("EXECUTE: ", "SLL", op1, "and", op2)
     elif (ALUop == 6):  # srl
-        if (op2 < 0):
+        if (op2 < 0| op2>31):
             print("ERROR: Shift by negative!\n")
-            exit(1)
-            
+            exit(1)            
         else:
-            rm = hex(op1>>op2)
+            if op1>=0:
+                rm=hex(op1>>op2)
+            else:
+                rm=hex((op1+4294967296)>>op2)
             print("EXECUTE: ", "SRL", op1, "and", op2)
         return
     elif (ALUop == 7):  # sra
-        if (op2 < 0):
+        if (op2 < 0 | op2>31):
             print("ERROR: Shift by negative!\n")
             exit(1)
-           
         else:
-            rm = bin(op1 >> op2)
-            if op1[2] == '8' or op1[2] == '9' or op1[2] == 'a' or op1[2] == 'b' or op1[2] == 'c' or op1[2] == 'd' or op1[2] == 'e' or op1[2] == 'f':
-                rm = '0b' + (34 - len(rm)) * '1' + rm[2:]
-            rm = hex(int(rm, 2))
-            print("EXECUTE:", "SRA" op1, "and", op2)
+            rm=op1>>op2
         return
     elif (ALUop == 8):  # slt
         if (op1<op2):
@@ -287,65 +287,64 @@ def execute():
         print("EXECUTE: ORI", op1, "and", op2)
         return
     elif (ALUop == 12):  # lb
-        mem_address = op1 + op2
+        rm = op1 + op2
         print("EXECUTE: ADD", op1, "and", op2)
     elif (ALUop == 13):  # lh
-        mem_address = op1 + op2
+        rm = op1 + op2
         print("EXECUTE: ADD", op1, "and", op2)
         return
     elif (ALUop == 14):  # lw
-        mem_address = op1 + op2
+        rm = op1 + op2
         print("EXECUTE: ADD", op1, "and", op2)
         return
     elif (ALUop == 15):  # sb
-        mem_address = op1 + op2
+        rm = op1 + op2
         rs2 = hex(rs2)
         print("EXECUTE: ADD", op1, "and", op2)
         return
     elif (ALUop == 16):  # sh
-        mem_address = op1 + op2
+        rm = op1 + op2
         rs2 = hex(rs2)
         print("EXECUTE: ADD", op1, "and", op2)
         return
     elif (ALUop == 17):  # sw
-        mem_address = op1 + op2
+        rm = op1 + op2
         rs2 = hex(rs2)
         print("EXECUTE: ADD", op1, "and", op2)
         return
     elif (ALUop == 18):  # beq
         if(op1==op2):
-            Branch_trg_sel=1
             is_branch=1
-            pc+=immB
+            Branch_target_add=pc+offset
         print("EXECUTE: BEQ", op1, "and", op2)
         return
     elif (ALUop == 19):  # bne
         if (op1 != op2):
-            Branch_trg_sel = 1
             is_branch = 1
-            pc += immB
+            Branch_target_add=pc+offset
         print("EXECUTE: BNE", op1, "and", op2)
         return
        
     elif (ALUop == 20):  # blt
         if (op1 < op2):
-            Branch_trg_sel = 1
             is_branch = 1
-            pc += immB
+            Branch_target_add=pc+offset
         print("EXECUTE: BLT", op1, "and", op2)
         return
 
     elif (ALUop == 21):  # bge
         if (op1 >= op2):
-            Branch_trg_sel = 1
             is_branch = 1
-            pc += immB
+            Branch_target_add=pc+offset
         print("EXECUTE: BGE", op1, "and", op2)
         return
     elif (ALUop == 22):  # jal
-        
+        rm=pc+4
+        Branch_target_add=pc+offset
         return
     elif (ALUop == 23):  # jalr
+        rm=pc+4
+        
         return
     elif (ALUop == 24):  # lui
         return
@@ -354,12 +353,13 @@ def execute():
 
     else:
         return
-
+        
 
 def memory_access():
     if(memory_access == 0):
         return
-    rm = mem_address
+    
+    global ma
     if (ALUop == 12): # lb
         ma = data_memory[rm] 
         print("MEMORY ACCESSING: LOAD BYTE", ma, " from ", rm)
@@ -390,11 +390,22 @@ def memory_access():
         return
 
 
-#
 def write_back():
+    pc_new=pc+4
+
     if(RFWrite == 0):
         return
-    
+    global result_write
+    if(Result_select == 0):
+        result_write = rm
+    if (Result_select == 1):
+        result_write = ma
+    if (Result_select == 2):
+        result_write = immU
+    if(Result_select == 3):
+        result_write = pc + 4
+    x[rd] = result_write
+    print("WRITING REGISTER FILE ", rd, " with ", result_write)
     return
 
 
