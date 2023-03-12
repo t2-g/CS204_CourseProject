@@ -67,15 +67,13 @@ def fetch():
 
 
 def decode():
-    #if condition to end 
     opcode=int(binary_instruction[25:],2)
     func3=int(binary_instruction[17:20],2)
     func7=int(binary_instruction[0:7],2)
     rs2=int(binary_instruction[7:12],2)
     rs1=int(binary_instruction[12:17],2)
     rd=int(binary_instruction[20:25],2)
-
-    ALUop=0
+    sign_extend()
     control_file=pd.read_csv("src\Control.csv")
     if opcode==51:
         if func3==0 and func7==0:
@@ -130,26 +128,60 @@ def decode():
             print("Invalid Instruction")
             exit(1)
     elif opcode==99:
-        
+        if func3==0:
+            control_signal(control_file["ALUop"][18],control_file["Op2_Select"][18],control_file["Mem_op"][18],control_file["Mem_read"][18],control_file["Mem_write"][18],control_file["Result_select"][18],control_file["Branch_trg_sel"][18],control_file["is_branch"][18],control_file["RFWrite"][18])
+        if func3==1:
+            control_signal(control_file["ALUop"][19],control_file["Op2_Select"][19],control_file["Mem_op"][19],control_file["Mem_read"][19],control_file["Mem_write"][19],control_file["Result_select"][19],control_file["Branch_trg_sel"][19],control_file["is_branch"][19],control_file["RFWrite"][19])
+        if func3==4:
+            control_signal(control_file["ALUop"][20],control_file["Op2_Select"][20],control_file["Mem_op"][20],control_file["Mem_read"][20],control_file["Mem_write"][20],control_file["Result_select"][20],control_file["Branch_trg_sel"][20],control_file["is_branch"][20],control_file["RFWrite"][20])
+        if func3==5:
+            control_signal(control_file["ALUop"][21],control_file["Op2_Select"][21],control_file["Mem_op"][21],control_file["Mem_read"][21],control_file["Mem_write"][21],control_file["Result_select"][21],control_file["Branch_trg_sel"][21],control_file["is_branch"][21],control_file["RFWrite"][21])
+        else:
+            print("Invalid Instruction")
+            exit(1)
+    elif opcode==111:
+        control_signal(control_file["ALUop"][22],control_file["Op2_Select"][22],control_file["Mem_op"][22],control_file["Mem_read"][22],control_file["Mem_write"][22],control_file["Result_select"][22],control_file["Branch_trg_sel"][22],control_file["is_branch"][22],control_file["RFWrite"][22])
+    elif opcode==103 and func3==0:
+        control_signal(control_file["ALUop"][23],control_file["Op2_Select"][23],control_file["Mem_op"][23],control_file["Mem_read"][23],control_file["Mem_write"][23],control_file["Result_select"][23],control_file["Branch_trg_sel"][23],control_file["is_branch"][23],control_file["RFWrite"][23])
+    elif opcode==55:
+        control_signal(control_file["ALUop"][24],control_file["Op2_Select"][24],control_file["Mem_op"][24],control_file["Mem_read"][24],control_file["Mem_write"][24],control_file["Result_select"][24],control_file["Branch_trg_sel"][24],control_file["is_branch"][24],control_file["RFWrite"][24])
+    elif opcode==23:
+        control_signal(control_file["ALUop"][25],control_file["Op2_Select"][25],control_file["Mem_op"][25],control_file["Mem_read"][25],control_file["Mem_write"][25],control_file["Result_select"][25],control_file["Branch_trg_sel"][25],control_file["is_branch"][25],control_file["RFWrite"][25])
+    else:
+        print("Invalid instruction")
+        exit(1)
+    
 
+
+
+            
+
+            
 def sign_extend():
     global immI,immU,immJ,immB,immS
     #I-Type
     tempI = binary_instruction[20:]
     #S-Type
-    tempS = binary_instruction[20:25]+ binary_instruction[0:7]
+    tempS = binary_instruction[0:7] + binary_instruction[20:25]
     #B-Type
     tempB = binary_instruction[0]+ binary_instruction[24] + binary_instruction[2:7] + binary_instruction[20:24]
     #U-Type
     tempU=binary_instruction[0:20]
     #J-Type
-    tempJ=binary_instruction[0] + binary_instruction[12:20]
-    if(tempI[:-1]=='0' or tempS[:-1]=='0'):
+    tempJ=binary_instruction[0] + binary_instruction[12:20] + binary_instruction[11] + binary_instruction[1:11]
+    
+    if(tempI[:-1]=='0' or tempS[:-1]=='0' or tempB[:-1]=='0' or tempU[:-1]=='0' or tempJ[:-1]='0'):
         immI=int('0'*(32-len(tempI)),2)
         immS=int('0'*(32-len(tempS)),2)
         immB=int('0'*(32-len(tempB)),2)
         immU=int('0'*(32-len(tempU)),2)
         immJ=int('0'*(32-len(tempJ)),2)
+    elif(tempI[:-1]=='1' or tempS[:-1]=='1' or tempB[:-1]=='1' or tempU[:-1]=='1' or tempJ[:-1]='1'):
+        immI=int('1'*(32-len(tempI)),2)
+        immS=int('1'*(32-len(tempS)),2)
+        immB=int('1'*(32-len(tempB)),2)
+        immU=int('1'*(32-len(tempU)),2)
+        immJ=int('1'*(32-len(tempJ)),2)
         
 def execute():
     global ALUop,rm,op1,op2,rs1,rs2,mem_address
