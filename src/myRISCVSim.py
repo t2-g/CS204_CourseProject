@@ -143,7 +143,7 @@ def sign_extend():
     #U-Type
     tempU=binary_instruction[0:20]
     #J-Type
-    tempJ=binary_instruction[0] + binary_instruction[]
+    tempJ=binary_instruction[0] + binary_instruction[12:20]
     if(tempI[:-1]=='0' or tempS[:-1]=='0'):
         immI=int('0'*(32-len(tempI)),2)
         immS=int('0'*(32-len(tempS)),2)
