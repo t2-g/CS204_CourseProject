@@ -295,7 +295,7 @@ def execute():
 
 def memory_access():
     if(ALUop == 12):
-        ma = data_memory[]
+        ma = data_memory[rm] + data_memory[rm+1]
     
 
 def write_back():
