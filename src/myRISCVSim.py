@@ -152,30 +152,30 @@ def sign_extend():
         immJ=int('0'*(32-len(tempJ)),2)
         
 def execute():
-    global ALUop,rm,op1,op2,rs1,rs2
+    global ALUop,rm,op1,op2,rs1,rs2,mem_address
 
     op1=rs1
     #
     op2=op2select_array[Op2_Select]
 
-    instruction_set=pd.read_csv("src\Instruction_Set_List.csv")
+    # instruction_set=pd.read_csv("src\Instruction_Set_List.csv")
     
     #-------------------------------------------
     if(ALUop==0): #add instruction
         rm=hex(int(op1,16)) + hex(int(op2,16))
-        print("EXECUTE ",instruction_set[ALUop][1].upper(),int(op1,16),"add",int(op2,16))
+        print("EXECUTE ","add",int(op1,16),"and",int(op2,16))
     elif(ALUop==1):# sub instruction
         rm=hex(int(op1,16)) - hex(int(op2,16))
-        print("EXECUTE ",instruction_set[ALUop][1].upper(),int(rs1,16),"sub",int(rs2,16))
+        print("EXECUTE ","sub",int(rs1,16),"and",int(rs2,16))
     elif(ALUop==2): #xor
         rm=hex(int (int(op1,16))) ^ hex(int(int(rs2,16)))
-        print("EXECUTE ",instruction_set[ALUop][1].upper(),int(rs1,16),"xor",int(rs2,16))
+        print("EXECUTE ","xor",int(rs1,16),"and",int(rs2,16))
     elif(ALUop==3): #or
         rm=hex(int (int(op1,16))) | hex(int(int(rs2,16)))
-        print("EXECUTE ",instruction_set[ALUop][1].upper(),int(rs1,16),"or",int(rs2,16))
+        print("EXECUTE ","or",int(rs1,16),"and",int(rs2,16))
     elif(ALUop==4): #and
         rm=hex(int (int(op1,16))) & hex(int(int(rs2,16)))
-        print("EXECUTE ",instruction_set[ALUop][1].upper(),int(rs1,16),"and",int(rs2,16))
+        print("EXECUTE ","and",int(rs1,16),"and",int(rs2,16))
     elif(ALUop==5): #sll
         if(int(op2, 16) < 0):
             print("ERROR: Shift by negative!\n")
@@ -183,7 +183,7 @@ def execute():
             return
         else:
             rm = hex(int(int(op1, 16) << int(op2, 16)))
-            print("EXECUTE:", instruction_set[ALUop][1].upper(), int(op1, 16), "and", int(op2, 16))
+            print("EXECUTE:","sll", int(op1, 16), "and", int(op2, 16))
     elif(ALUop==6):#srl
         if(int(op2, 16) < 0):
             print("ERROR: Shift by negative!\n")
@@ -191,30 +191,43 @@ def execute():
             return
         else:
             rm= hex(int(op1, 16) >> int(op2, 16))
-            print("EXECUTE:", instruction_set[ALUop][1].upper(), int(op1, 16), "and", int(op2, 16))
+            print("EXECUTE:","srl", int(op1, 16), "and", int(op2, 16))
         
         return
-    elif(ALUop==7):
+    elif(ALUop==7): #sra
         if(int(op2, 16) < 0):
             print("ERROR: Shift by negative!\n")
             exit(1)
             return
         else:
-            register_data = bin(int(int(op1, 16) >> int(op2, 16)))
-            if op1[2] == '8' or op1[2] == '9' or op1[2] == 'a' or operand1[2] == 'b' or operand1[2] == 'c' or operand1[2] == 'd' or operand1[2] == 'e' or operand1[2] == 'f':
-                register_data = '0b' + (34 - len(register_data)) * '1' + register_data[2:]
-            register_data = hex(int(register_data, 2))
-            print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
+            rm = bin(int(int(op1, 16) >> int(op2, 16)))
+            if op1[2] == '8' or op1[2] == '9' or op1[2] == 'a' or op1[2] == 'b' or op1[2] == 'c' or op1[2] == 'd' or operand1[2] == 'e' or operand1[2] == 'f':
+                rm = '0b' + (34 - len(rm)) * '1' + rm[2:]
+            rm = hex(int(rm, 2))
+            print("EXECUTE:","sra" , int(op1, 16), "and", int(op2, 16))
         return
-    elif(ALUop==8):
+    elif(ALUop==8):#slt
+        if (int(op1, 16) < int(op2, 16)):
+            rm = hex(1)
+        else:
+            rm = hex(0)
+        print("EXECUTE:","slt", int(op1, 16), "and", int(op2, 16))
         return
-    elif(ALUop==9):
+    elif(ALUop==9):#addi
+        rm=hex(int(op1,16)+int(op2,2,len(op2)))
+        print("EXECUTE: ADDI", int(op1, 16), "and", int(op2, 2, len(op2)))
         return
-    elif(ALUop==10):
+    
+    elif(ALUop==10):#ori
+        rm=hex(int(op1,16) | int(op2,2,len(op2)))
+        print("EXECUTE: ORI", int(op1, 16), "and", int(op2, 2, len(op2)))
         return
-    elif(ALUop==11):
+    elif(ALUop==11):#andi
+        rm=hex(int(op1,16) | int(op2,2,len(op2)))
+        print("EXECUTE: ANDI", int(op1, 16), "and", int(op2, 2, len(op2)))
         return
-    elif(ALUop==12):
+    elif(ALUop==12): #lb
+        mem_address=int(op1,16)+int(op2,2,len(op2))
         
         return
     elif(ALUop==13):
