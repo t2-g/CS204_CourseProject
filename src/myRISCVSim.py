@@ -5,14 +5,14 @@ x=[0]*32
 x[2]=int("0x7FFFFFF0",16) #sp - stack pointer
 x[3]=int("0x10000000",16) #the beginning address of data segment of memory
 
-
+op2select_array=[]
 pc=0
 clk=0
 
 instruction_memory=defaultdict(lambda:"00")
 data_memory=defaultdict(lambda:"00")
 
-global rs1,rs2,rd,opcode,func3,func7,immB,immJ,immR,immS,immU,Op2_Select,Mem_op,ALU_op,Result_select,Branch_trg_sel,is_branch,RFWrite
+global rs1,rs2,rd,opcode,func3,func7,immB,immJ,immR,immS,immU,Op2_Select,Mem_op,ALU_op,Result_select,Branch_trg_sel,is_branch,RFWrite,mem_read,mem_write
 
 def read_from_file(file_name):
     flag=0
@@ -43,13 +43,16 @@ def read_from_file(file_name):
         exit(1)
 
 
-def control_signal(_Op2_Select,_Mem_op,_Result_select,_Branch_trg_sel,_is_branch,_RFWrite):
+def control_signal(_ALUop,_Op2_Select,_Mem_op,_mem_read,_mem_write,_Result_select,_Branch_trg_sel,_is_branch,_RFWrite):
+    ALUop=_ALUop
     Op2_Select=_Op2_Select
     Mem_op=_Mem_op
     Result_select=_Result_select
     Branch_trg_sel=_Branch_trg_sel
     is_branch=_is_branch
     RFWrite=_RFWrite
+    mem_read=_mem_read
+    mem_write=_mem_write
    
 
 def fetch():
@@ -58,6 +61,9 @@ def fetch():
     binary_instruction=bin(int(IR,16))[2:]
     binary_instruction='0'*(32-len(binary_instruction))+binary_instruction 
 
+# def hex_negative():
+
+# def int_negative():
 
 
 def decode():
@@ -69,31 +75,183 @@ def decode():
     rs1=int(binary_instruction[12:17],2)
     rd=int(binary_instruction[20:25],2)
 
-
-    instruction_set=pd.read_csv("src\Instruction_Set_List.csv")
-# column 2 3 4
     ALUop=0
-    flag=0
-
-   
-
-    if(instruction_set.loc[int(instruction_set['opcode'],2)==opcode and int(instruction_set['func3'],2)== func3 and instruction_set['func7']== "NA"] ):
-        ALUop=instruction_set.loc[int(instruction_set['opcode'],2)==opcode and int(instruction_set['func3'],2)== func3 and instruction_set['func7']== "NA"]
-    elif(instruction_set.loc[int(instruction_set['opcode'],2)==opcode and int(instruction_set['func3'],2)== func3 and int(instruction_set['func7'],2)== func7]):
-        ALUop=instruction_set.loc[int(instruction_set['opcode'],2)==opcode and int(instruction_set['func3'],2)== func3 and int(instruction_set['func7'],2)== func7]
-    else:
-        print("error wrong machine code\n")
-        exit(1)
-        return
+    control_file=pd.read_csv("src\Control.csv")
+    if opcode==51:
+        if func3==0 and func7==0:
+            control_signal(control_file["ALUop"][0],control_file["Op2_Select"][0],control_file["Mem_op"][0],control_file["Mem_read"][0],control_file["Mem_write"][0],control_file["Result_select"][0],control_file["Branch_trg_sel"][0],control_file["is_branch"][0],control_file["RFWrite"][0])
+        elif func3==0 and func7==32:
+            control_signal(control_file["ALUop"][1],control_file["Op2_Select"][1],control_file["Mem_op"][1],control_file["Mem_read"][1],control_file["Mem_write"][1],control_file["Result_select"][1],control_file["Branch_trg_sel"][1],control_file["is_branch"][1],control_file["RFWrite"][1])            
+        elif func3==4 and func7==0:
+            control_signal(control_file["ALUop"][2],control_file["Op2_Select"][2],control_file["Mem_op"][2],control_file["Mem_read"][2],control_file["Mem_write"][2],control_file["Result_select"][2],control_file["Branch_trg_sel"][2],control_file["is_branch"][2],control_file["RFWrite"][2])
+        elif func3==6 and func7==0:
+            control_signal(control_file["ALUop"][3],control_file["Op2_Select"][3],control_file["Mem_op"][3],control_file["Mem_read"][3],control_file["Mem_write"][3],control_file["Result_select"][3],control_file["Branch_trg_sel"][3],control_file["is_branch"][3],control_file["RFWrite"][3])
+        elif func3==7 and func7==0:
+            control_signal(control_file["ALUop"][4],control_file["Op2_Select"][4],control_file["Mem_op"][4],control_file["Mem_read"][4],control_file["Mem_write"][4],control_file["Result_select"][4],control_file["Branch_trg_sel"][4],control_file["is_branch"][4],control_file["RFWrite"][4])
+        elif func3==1 and func7==0:
+            control_signal(control_file["ALUop"][5],control_file["Op2_Select"][5],control_file["Mem_op"][5],control_file["Mem_read"][5],control_file["Mem_write"][5],control_file["Result_select"][5],control_file["Branch_trg_sel"][5],control_file["is_branch"][5],control_file["RFWrite"][5])
+        elif func3==5 and func7==0:
+            control_signal(control_file["ALUop"][6],control_file["Op2_Select"][6],control_file["Mem_op"][6],control_file["Mem_read"][6],control_file["Mem_write"][6],control_file["Result_select"][6],control_file["Branch_trg_sel"][6],control_file["is_branch"][6],control_file["RFWrite"][6])
+        elif func3==5 and func7==32:
+            control_signal(control_file["ALUop"][7],control_file["Op2_Select"][7],control_file["Mem_op"][7],control_file["Mem_read"][7],control_file["Mem_write"][7],control_file["Result_select"][7],control_file["Branch_trg_sel"][7],control_file["is_branch"][7],control_file["RFWrite"][7])
+        elif func3==2 and func7==0:
+            control_signal(control_file["ALUop"][8],control_file["Op2_Select"][8],control_file["Mem_op"][8],control_file["Mem_read"][8],control_file["Mem_write"][8],control_file["Result_select"][8],control_file["Branch_trg_sel"][8],control_file["is_branch"][8],control_file["RFWrite"][8])
+        else:
+            print("Invalid instruction")
+            exit(1)
+    elif opcode==19:
+        if func3==0:
+            control_signal(control_file["ALUop"][9],control_file["Op2_Select"][9],control_file["Mem_op"][9],control_file["Mem_read"][9],control_file["Mem_write"][9],control_file["Result_select"][9],control_file["Branch_trg_sel"][9],control_file["is_branch"][9],control_file["RFWrite"][9])
+        elif func3==6:
+            control_signal(control_file["ALUop"][10],control_file["Op2_Select"][10],control_file["Mem_op"][10],control_file["Mem_read"][10],control_file["Mem_write"][10],control_file["Result_select"][10],control_file["Branch_trg_sel"][10],control_file["is_branch"][10],control_file["RFWrite"][10])
+        elif func3==7:
+            control_signal(control_file["ALUop"][11],control_file["Op2_Select"][11],control_file["Mem_op"][11],control_file["Mem_read"][11],control_file["Mem_write"][11],control_file["Result_select"][11],control_file["Branch_trg_sel"][11],control_file["is_branch"][11],control_file["RFWrite"][11])
+        else:
+            print("Invalid instruction")
+            exit(1)
+    elif opcode==3:
+        if func3==0:
+            control_signal(control_file["ALUop"][12],control_file["Op2_Select"][12],control_file["Mem_op"][12],control_file["Mem_read"][12],control_file["Mem_write"][12],control_file["Result_select"][12],control_file["Branch_trg_sel"][12],control_file["is_branch"][12],control_file["RFWrite"][12])
+        elif func3==1:
+            control_signal(control_file["ALUop"][13],control_file["Op2_Select"][13],control_file["Mem_op"][13],control_file["Mem_read"][13],control_file["Mem_write"][13],control_file["Result_select"][13],control_file["Branch_trg_sel"][13],control_file["is_branch"][13],control_file["RFWrite"][13])
+        elif func3==2:
+            control_signal(control_file["ALUop"][14],control_file["Op2_Select"][14],control_file["Mem_op"][14],control_file["Mem_read"][14],control_file["Mem_write"][14],control_file["Result_select"][14],control_file["Branch_trg_sel"][14],control_file["is_branch"][14],control_file["RFWrite"][14])
+        else:
+            print("Invalid Instruction")
+            exit(1)
+    elif opcode==35:
+        if func3==0:
+            control_signal(control_file["ALUop"][15],control_file["Op2_Select"][15],control_file["Mem_op"][15],control_file["Mem_read"][15],control_file["Mem_write"][15],control_file["Result_select"][15],control_file["Branch_trg_sel"][15],control_file["is_branch"][15],control_file["RFWrite"][15])
+        elif func3==1:
+            control_signal(control_file["ALUop"][16],control_file["Op2_Select"][16],control_file["Mem_op"][16],control_file["Mem_read"][16],control_file["Mem_write"][16],control_file["Result_select"][16],control_file["Branch_trg_sel"][16],control_file["is_branch"][16],control_file["RFWrite"][16])
+        elif func3==2:
+            control_signal(control_file["ALUop"][17],control_file["Op2_Select"][17],control_file["Mem_op"][17],control_file["Mem_read"][17],control_file["Mem_write"][17],control_file["Result_select"][17],control_file["Branch_trg_sel"][17],control_file["is_branch"][17],control_file["RFWrite"][17])
+        else:
+            print("Invalid Instruction")
+            exit(1)
+    elif opcode==99:
         
 
-   
-
-
-    
+def sign_extend():
+    global immI,immU,immJ,immB,immS
+    #I-Type
+    tempI = binary_instruction[20:]
+    #S-Type
+    tempS = binary_instruction[20:25]+ binary_instruction[0:7]
+    #B-Type
+    tempB = binary_instruction[0]+ binary_instruction[24] + binary_instruction[2:7] + binary_instruction[20:24]
+    #U-Type
+    tempU=binary_instruction[0:20]
+    #J-Type
+    tempJ=binary_instruction[0] + binary_instruction[]
+    if(tempI[:-1]=='0' or tempS[:-1]=='0'):
+        immI=int('0'*(32-len(tempI)),2)
+        immS=int('0'*(32-len(tempS)),2)
+        immB=int('0'*(32-len(tempB)),2)
+        immU=int('0'*(32-len(tempU)),2)
+        immJ=int('0'*(32-len(tempJ)),2)
+        
 def execute():
+    global ALUop,rm,op1,op2,rs1,rs2
+
+    op1=rs1
+    #
+    op2=op2select_array[Op2_Select]
+
+    instruction_set=pd.read_csv("src\Instruction_Set_List.csv")
+    
+    #-------------------------------------------
+    if(ALUop==0): #add instruction
+        rm=hex(int(op1,16)) + hex(int(op2,16))
+        print("EXECUTE ",instruction_set[ALUop][1].upper(),int(op1,16),"add",int(op2,16))
+    elif(ALUop==1):# sub instruction
+        rm=hex(int(op1,16)) - hex(int(op2,16))
+        print("EXECUTE ",instruction_set[ALUop][1].upper(),int(rs1,16),"sub",int(rs2,16))
+    elif(ALUop==2): #xor
+        rm=hex(int (int(op1,16))) ^ hex(int(int(rs2,16)))
+        print("EXECUTE ",instruction_set[ALUop][1].upper(),int(rs1,16),"xor",int(rs2,16))
+    elif(ALUop==3): #or
+        rm=hex(int (int(op1,16))) | hex(int(int(rs2,16)))
+        print("EXECUTE ",instruction_set[ALUop][1].upper(),int(rs1,16),"or",int(rs2,16))
+    elif(ALUop==4): #and
+        rm=hex(int (int(op1,16))) & hex(int(int(rs2,16)))
+        print("EXECUTE ",instruction_set[ALUop][1].upper(),int(rs1,16),"and",int(rs2,16))
+    elif(ALUop==5): #sll
+        if(int(op2, 16) < 0):
+            print("ERROR: Shift by negative!\n")
+            exit(1)
+            return
+        else:
+            rm = hex(int(int(op1, 16) << int(op2, 16)))
+            print("EXECUTE:", instruction_set[ALUop][1].upper(), int(op1, 16), "and", int(op2, 16))
+    elif(ALUop==6):#srl
+        if(int(op2, 16) < 0):
+            print("ERROR: Shift by negative!\n")
+            exit(1)
+            return
+        else:
+            rm= hex(int(op1, 16) >> int(op2, 16))
+            print("EXECUTE:", instruction_set[ALUop][1].upper(), int(op1, 16), "and", int(op2, 16))
+        
+        return
+    elif(ALUop==7):
+        if(int(op2, 16) < 0):
+            print("ERROR: Shift by negative!\n")
+            exit(1)
+            return
+        else:
+            register_data = bin(int(int(op1, 16) >> int(op2, 16)))
+            if op1[2] == '8' or op1[2] == '9' or op1[2] == 'a' or operand1[2] == 'b' or operand1[2] == 'c' or operand1[2] == 'd' or operand1[2] == 'e' or operand1[2] == 'f':
+                register_data = '0b' + (34 - len(register_data)) * '1' + register_data[2:]
+            register_data = hex(int(register_data, 2))
+            print("EXECUTE:", operation.upper(), nint(operand1, 16), "and", nint(operand2, 16))
+        return
+    elif(ALUop==8):
+        return
+    elif(ALUop==9):
+        return
+    elif(ALUop==10):
+        return
+    elif(ALUop==11):
+        return
+    elif(ALUop==12):
+        
+        return
+    elif(ALUop==13):
+        return
+    elif(ALUop==14):
+        return
+    elif(ALUop==15):
+        return
+    elif(ALUop==16):
+        return
+    elif(ALUop==17):
+        return
+    elif(ALUop==18):
+        return
+    elif(ALUop==19):
+        return
+    elif(ALUop==20):
+        return
+    elif(ALUop==21):
+        return
+    elif(ALUop==22):
+        return
+    elif(ALUop==23):
+        return
+    elif(ALUop==24):
+        return
+    elif(ALUop==25):
+        return
+    else:
+        return
+
+
+
 def memory_access():
+    return
 def write_back():
+    return
 
 if __name__=="__main__":
     while(True):
