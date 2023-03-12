@@ -1,10 +1,21 @@
 """
-""""""
+This is the Phase 1 of Course Project to build a simulator that will execute RISCV-32I ISA in single cycle.
+
+-------------------------------------------------
+| Developer's Name   | Developer's Email ID     |
+|-----------------------------------------------|
+| Keshav Arora       | 2020eeb1177@iitrpr.ac.in |
+| Vasu Bansal        | 2020eeb1217@iitrpr.ac.in |
+| Aakash Garg        | 2020meb@iitrpr.ac.in     |
+| Tiya Jain          | 2020eeb1213@iitrpr.ac.in |
+-------------------------------------------------
+
+To run this file:
 """
 from collections import defaultdict
 import pandas as pd
 
-x = ["0x00000000"]*32
+x = ["0x00000000"]*32 # Register File
 x[2] = "0x7FFFFFF0" # sp - stack pointer
 x[3] = "0x10000000"  # the beginning address of data segment of memory
 
@@ -12,12 +23,12 @@ global pc,clk
 pc=0
 clk = 0
 
-instruction_memory = defaultdict(lambda: "00")
-data_memory = defaultdict(lambda: "00")
+instruction_memory = defaultdict(lambda: "00")# Memory for Instructions
+data_memory = defaultdict(lambda: "00")# Memory for Data
 
 
 def read_from_file(file_name):
-    flag = 0
+    flag = 0 # To distinguish between instruction and data
     try:
         file = open(file_name, 'r')
         for line in file:
@@ -25,7 +36,7 @@ def read_from_file(file_name):
             if len(tmp) == 2:
                 address, instruction = tmp[0], tmp[1]
 
-            if flag == 0:
+            if flag == 0: # Storing Instruction in instruction_memory 
                 mem_location = int(address[2:], 16)
                 instruction_memory[hex(mem_location)] = instruction[2:4]
                 instruction_memory[hex(mem_location + 1)] = instruction[4:6]
@@ -33,7 +44,7 @@ def read_from_file(file_name):
                 instruction_memory[hex(mem_location + 3)] = instruction[8:10]
             if tmp[1] == '$':
                 flag = 1
-            elif flag == 1:
+            elif flag == 1:# Storing Data in Data_memory
                 mem_location = int(address[2:], 16)
                 data_memory[hex(mem_location)] = instruction[2:4]
                 data_memory[hex(mem_location + 1)] = instruction[4:6]
@@ -44,7 +55,7 @@ def read_from_file(file_name):
         print("Error opening input .mc file\n")
         return
 
-
+ #To define control signals
 def control_signal(_ALUop, _Op2_Select, _Mem_op, _mem_read, _mem_write, _Result_select, _Branch_trg_sel, _is_branch, _RFWrite):
     global Op2_Select, Mem_op, ALUop, Result_select, Branch_trg_sel, is_branch, RFWrite, mem_read, mem_write
     ALUop = _ALUop
@@ -71,25 +82,27 @@ def sign_extend():
     tempJ = binary_instruction[0] + binary_instruction[12:20] + binary_instruction[11] + binary_instruction[1:11] + '0'
 
     if tempI[0] == '0' or tempS[0] == '0' or tempB[0] == '0' or tempU[0] == '0' or tempJ[0] == '0':
+    # extending signs for positive numbers
         immI = '0'*(32-len(tempI))+tempI
         immS = '0'*(32-len(tempS))+tempS
         immB = '0'*(32-len(tempB))+tempB
         immU = tempU + '0'*12
         immJ = '0'*(32-len(tempJ))+tempJ
     elif tempI[0] == '1' or tempS[0] == '1' or tempB[0] == '1' or tempU[0] == '1' or tempJ[0] == '1':
+    # extending signs for negative nubmers
         immI = '1'*(32-len(tempI))+tempI
         immS = '1'*(32-len(tempS))+tempS
         immB = '1'*(32-len(tempB))+tempB
         immU = tempU + '0'*12
         immJ = '1'*(32-len(tempJ))+tempJ
-
+# To fetch the instruction from instruction_memory
 def fetch():
     global binary_instruction
     read_from_file("D:\CS204_CourseProject\src\test\bubbleSort.mc")
     IR = '0x'+instruction_memory[hex(pc)]+instruction_memory[hex(pc +1)] + instruction_memory[hex(pc+2)]+instruction_memory[hex(pc+3)]
     binary_instruction = bin(int(IR, 16))[2:]
     binary_instruction = '0'*(32-len(binary_instruction))+binary_instruction
-
+# To decode the instruction and reading from register file and generating control signals
 def decode():
     global rs1, rs2,op1, op2, rd, opcode, func3, func7, immB, immJ, immI, immS, immU, Op2_Select, Mem_op, ALUop, Result_select, Branch_trg_sel, is_branch, RFWrite, mem_read, mem_write
     opcode = int(binary_instruction[25:], 2)
@@ -121,38 +134,38 @@ def decode():
     else:
         immU=int(immU,2)-4294967296
     control_file = pd.read_csv("src\Control.csv")
-    if opcode == 51:
-        if func3 == 0 and func7 == 0:
+    if opcode == 51: # R - type
+        if func3 == 0 and func7 == 0: # ADD
             control_signal(control_file["ALUop"][0], control_file["Op2_Select"][0], control_file["Mem_op"][0], control_file["Mem_read"][0], control_file["Mem_write"]
                            [0], control_file["Result_select"][0], control_file["Branch_trg_sel"][0], control_file["is_branch"][0], control_file["RFWrite"][0])
-        elif func3 == 0 and func7 == 32:
+        elif func3 == 0 and func7 == 32: # SUB
             control_signal(control_file["ALUop"][1], control_file["Op2_Select"][1], control_file["Mem_op"][1], control_file["Mem_read"][1], control_file["Mem_write"]
                            [1], control_file["Result_select"][1], control_file["Branch_trg_sel"][1], control_file["is_branch"][1], control_file["RFWrite"][1])
-        elif func3 == 4 and func7 == 0:
+        elif func3 == 4 and func7 == 0: # XOR
             control_signal(control_file["ALUop"][2], control_file["Op2_Select"][2], control_file["Mem_op"][2], control_file["Mem_read"][2], control_file["Mem_write"]
                            [2], control_file["Result_select"][2], control_file["Branch_trg_sel"][2], control_file["is_branch"][2], control_file["RFWrite"][2])
-        elif func3 == 6 and func7 == 0:
+        elif func3 == 6 and func7 == 0:# OR
             control_signal(control_file["ALUop"][3], control_file["Op2_Select"][3], control_file["Mem_op"][3], control_file["Mem_read"][3], control_file["Mem_write"]
                            [3], control_file["Result_select"][3], control_file["Branch_trg_sel"][3], control_file["is_branch"][3], control_file["RFWrite"][3])
-        elif func3 == 7 and func7 == 0:
+        elif func3 == 7 and func7 == 0: # AND
             control_signal(control_file["ALUop"][4], control_file["Op2_Select"][4], control_file["Mem_op"][4], control_file["Mem_read"][4], control_file["Mem_write"]
                            [4], control_file["Result_select"][4], control_file["Branch_trg_sel"][4], control_file["is_branch"][4], control_file["RFWrite"][4])
-        elif func3 == 1 and func7 == 0:
+        elif func3 == 1 and func7 == 0:  # SLL
             control_signal(control_file["ALUop"][5], control_file["Op2_Select"][5], control_file["Mem_op"][5], control_file["Mem_read"][5], control_file["Mem_write"]
                            [5], control_file["Result_select"][5], control_file["Branch_trg_sel"][5], control_file["is_branch"][5], control_file["RFWrite"][5])
-        elif func3 == 5 and func7 == 0:
+        elif func3 == 5 and func7 == 0: # SRL
             control_signal(control_file["ALUop"][6], control_file["Op2_Select"][6], control_file["Mem_op"][6], control_file["Mem_read"][6], control_file["Mem_write"]
                            [6], control_file["Result_select"][6], control_file["Branch_trg_sel"][6], control_file["is_branch"][6], control_file["RFWrite"][6])
-        elif func3 == 5 and func7 == 32:
+        elif func3 == 5 and func7 == 32:# SRA
             control_signal(control_file["ALUop"][7], control_file["Op2_Select"][7], control_file["Mem_op"][7], control_file["Mem_read"][7], control_file["Mem_write"]
                            [7], control_file["Result_select"][7], control_file["Branch_trg_sel"][7], control_file["is_branch"][7], control_file["RFWrite"][7])
-        elif func3 == 2 and func7 == 0:
+        elif func3 == 2 and func7 == 0:# SLT
             control_signal(control_file["ALUop"][8], control_file["Op2_Select"][8], control_file["Mem_op"][8], control_file["Mem_read"][8], control_file["Mem_write"]
                            [8], control_file["Result_select"][8], control_file["Branch_trg_sel"][8], control_file["is_branch"][8], control_file["RFWrite"][8])
         else:
             print("Invalid instruction")
             return
-    elif opcode == 19:
+    elif opcode == 19:# I - type
         if func3 == 0:
             control_signal(control_file["ALUop"][9], control_file["Op2_Select"][9], control_file["Mem_op"][9], control_file["Mem_read"][9], control_file["Mem_write"]
                            [9], control_file["Result_select"][9], control_file["Branch_trg_sel"][9], control_file["is_branch"][9], control_file["RFWrite"][9])
