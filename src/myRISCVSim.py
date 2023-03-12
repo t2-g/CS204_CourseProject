@@ -60,13 +60,14 @@ def control_signal(_ALUop, _Op2_Select, _Mem_op, _mem_read, _mem_write, _Result_
 
 def fetch():
     global binary_instruction
+    read_from_file("D:\CS204_CourseProject\src\test\bubbleSort.mc")
     IR = '0x'+instruction_memory[pc]+instruction_memory[pc +1] + instruction_memory[pc+2]+instruction_memory[pc+3]
     binary_instruction = bin(int(IR, 16))[2:]
     binary_instruction = '0'*(32-len(binary_instruction))+binary_instruction
 
 
 def decode():
-    global rs1, rs2, rd, opcode, func3, func7, immB, immJ, immR, immS, immU, Op2_Select, Mem_op, ALUop, Result_select, Branch_trg_sel, is_branch, RFWrite, mem_read, mem_write
+    global rs1, rs2,op1, op2, rd, opcode, func3, func7, immB, immJ, immR, immS, immU, Op2_Select, Mem_op, ALUop, Result_select, Branch_trg_sel, is_branch, RFWrite, mem_read, mem_write
     opcode = int(binary_instruction[25:], 2)
     func3 = int(binary_instruction[17:20], 2)
     func7 = int(binary_instruction[0:7], 2)
@@ -74,6 +75,36 @@ def decode():
     rs1 = int(binary_instruction[12:17], 2)
     rd = int(binary_instruction[20:25], 2)
     sign_extend()
+    op1 = int(x[rs1],16)
+    if Op2_Select == 0:
+        op2 = int(x[rs2],16)
+    elif Op2_Select == 1:
+        if(immI[0]=='0'):
+            immI=int(immI,2)
+        else:
+            immI=int(immI,2)-4294967296
+    else:
+        if(immS[0]=='0'):
+            immS=int(immS,2)
+        else:
+            immS=int(immS,2)-4294967296
+    
+    if Branch_trg_sel==0:
+        if(immB[0]=='0'):
+            immB=int(immB,2)
+        else:
+            immB=int(immB,2)-4294967296
+        offset=immB
+    else:
+        if(immJ[0]=='0'):
+            immJ=int(immJ,2)
+        else:
+            immJ=int(immJ,2)-4294967296
+        offset=immJ
+    if(immU[0]=='0'):
+        immU=int(immU,2)
+    else:
+        immU=int(immU,2)-4294967296
     control_file = pd.read_csv("src\Control.csv")
     if opcode == 51:
         if func3 == 0 and func7 == 0:
@@ -207,39 +238,8 @@ def sign_extend():
 
 
 def execute():
-    global rm, op1, op2,is_branch,Branch_trg_sel,offset,Branch_target_add,num_b,pc_new
-    pc_new=pc+4
-    op1 = int(x[rs1],16)
-    if Op2_Select == 0:
-        op2 = int(x[rs2],16)
-    elif Op2_Select == 1:
-        if(immI[0]=='0'):
-            immI=int(immI,2)
-        else:
-            immI=int(immI,2)-4294967296
-    else:
-        if(immS[0]=='0'):
-            immS=int(immS,2)
-        else:
-            immS=int(immS,2)-4294967296
-    
-    if Branch_trg_sel==0:
-        if(immB[0]=='0'):
-            immB=int(immB,2)
-        else:
-            immB=int(immB,2)-4294967296
-        offset=immB
-    else:
-        if(immJ[0]=='0'):
-            immJ=int(immJ,2)
-        else:
-            immJ=int(immJ,2)-4294967296
-        offset=immJ
-    if(immU[0]=='0'):
-        immU=int(immU,2)
-    else:
-        immU=int(immU,2)-4294967296
-        
+    global rm,is_branch,Branch_trg_sel,offset,Branch_target_add,num_b,pc_new
+    pc_new=pc+4        
     if (ALUop == 0):  # add instruction
         rm = hex(op1 + op2)
         print("EXECUTE: ", "ADD", op1, "and", op2)
