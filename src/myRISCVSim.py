@@ -285,18 +285,17 @@ def execute():
         rm = hex(int(op1, 16) | int(op2, 2, len(op2)))
         print("EXECUTE: ANDI", int(op1, 16), "and", int(op2, 2, len(op2)))
         return
-    
-    elif (ALUop == 12):  # lb
-        mem_address = op1 + op2
-        rm = mem_address
-        print("EXECUTE: ADD", int(op1, 16), "and", int(op2, 2, len(op2)))
+    elif(ALUop==12): #lb
+        mem_address=int(op1,16)+int(op2,2,len(op2))
+        print("EXECUTE: ADD", int(op1), "and", int(op2, 2, len(op2)))
+    elif(ALUop==13): #lh
+
         return
-    
-    elif (ALUop == 13): #
+    elif(ALUop==13):
         return
-    elif (ALUop == 14):
+    elif(ALUop==14):
         return
-    elif (ALUop == 15):
+    elif(ALUop==15):
         return
     elif (ALUop == 16):
         return
@@ -324,8 +323,6 @@ def execute():
 
 def memory_access():
     return
-
-
 def write_back():
     return
 
