@@ -338,21 +338,23 @@ def execute():
             Branch_target_add=pc+offset
         print("EXECUTE: BGE", op1, "and", op2)
         return
+    
     elif (ALUop == 22):  # jal
         rm=pc+4
         Branch_target_add=pc+offset
         return
     elif (ALUop == 23):  # jalr
         rm=pc+4
-        
+        Branch_target_add=rs1+op2
         return
     elif (ALUop == 24):  # lui
+        rm=immU<<12        
         return
     elif (ALUop == 25):  # auipc
+        rm=pc+immU<<12
         return
-
     else:
-        return
+        print("error: no matching ALU operation is possible for this instruction")
         
 
 def memory_access():
