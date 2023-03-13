@@ -60,11 +60,11 @@ def control_signal(_ALUop, _Op2_Select, _Mem_op, _mem_read, _mem_write, _Result_
 def sign_extend():
     global immI, immU, immJ, immB, immS
     # I-Type
-    tempI = binary_instruction[20:]
+    tempI = binary_instruction[0:12]
     # S-Type
     tempS = binary_instruction[0:7] + binary_instruction[20:25]
     # B-Type
-    tempB = binary_instruction[0] + binary_instruction[24] +binary_instruction[2:7] + binary_instruction[20:24] + '0'
+    tempB = binary_instruction[0] + binary_instruction[24] +binary_instruction[1:7] + binary_instruction[20:24] + '0'
     # U-Type
     tempU = binary_instruction[0:20]
     # J-Type
@@ -85,7 +85,6 @@ def sign_extend():
 
 def fetch():
     global binary_instruction
-    read_from_file("D:\CS204_CourseProject\src\test\bubbleSort.mc")
     IR = '0x'+instruction_memory[hex(pc)]+instruction_memory[hex(pc +1)] + instruction_memory[hex(pc+2)]+instruction_memory[hex(pc+3)]
     binary_instruction = bin(int(IR, 16))[2:]
     binary_instruction = '0'*(32-len(binary_instruction))+binary_instruction
@@ -120,7 +119,7 @@ def decode():
         immU=int(immU,2)
     else:
         immU=int(immU,2)-4294967296
-    control_file = pd.read_csv("src\Control.csv")
+    control_file = pd.read_csv("control.csv")
     if opcode == 51:
         if func3 == 0 and func7 == 0:
             control_signal(control_file["ALUop"][0], control_file["Op2_Select"][0], control_file["Mem_op"][0], control_file["Mem_read"][0], control_file["Mem_write"]
@@ -225,7 +224,7 @@ def decode():
         return
 
 def execute():
-    global rm,is_branch,Branch_trg_sel,offset,Branch_target_add,num_b,pc_new
+    global rm,is_branch,Branch_trg_sel,offset,Branch_target_add,num_b,pc_new,pc
     pc_new=pc+4   
     if Op2_Select == 0:
         op2 = int(x[rs2],16)
@@ -284,6 +283,7 @@ def execute():
         else:
             rm=op1>>op2
         rm="0x"+'0'*(8-(len(rm)-2))+rm[2:]
+        print("EXECUTE:", "SRA", op1, "and", op2)
         return
     elif (ALUop == 8):  # slt
         if (op1<op2):
@@ -308,88 +308,92 @@ def execute():
     elif (ALUop == 11):  # andi
         rm = hex(op1 & op2)
         rm="0x"+'0'*(8-(len(rm)-2))+rm[2:]
-        print("EXECUTE: ORI", op1, "and", op2)
+        print("EXECUTE: ANDI", op1, "and", op2)
         return
     
     elif (ALUop == 12):  # lb
         rm = hex(op1 + op2)
         rm="0x"+'0'*(8-(len(rm)-2))+rm[2:]
         num_b=1
-        print("EXECUTE: ADD", op1, "and", op2)
+        print("EXECUTE: LB", op1, "and", op2)
 
     elif (ALUop == 13):  # lh
         rm = hex(op1 + op2)
         rm="0x"+'0'*(8-(len(rm)-2))+rm[2:]
         num_b=2
-        print("EXECUTE: ADD", op1, "and", op2)
+        print("EXECUTE: LH ", op1, "and", op2)
         return
     elif (ALUop == 14):  # lw
         rm = hex(op1 + op2)
         rm="0x"+'0'*(8-(len(rm)-2))+rm[2:]
         num_b=4
-        print("EXECUTE: ADD", op1, "and", op2)
+        print("EXECUTE: LW ", op1, "and", op2)
         return
     elif (ALUop == 15):  # sb
         rm = hex(op1 + op2)
         rm="0x"+'0'*(8-(len(rm)-2))+rm[2:]
         num_b=1
-        print("EXECUTE: ADD", op1, "and", op2)
+        print("EXECUTE: SB ", op1, "and", op2)
         return
     elif (ALUop == 16):  # sh
         rm = hex(op1 + op2)
         rm="0x"+'0'*(8-(len(rm)-2))+rm[2:]
         num_b=2
-        print("EXECUTE: ADD", op1, "and", op2)
+        print("EXECUTE: SH ", op1, "and", op2)
         return
     elif (ALUop == 17):  # sw
         rm = hex(op1 + op2)
         rm="0x"+'0'*(8-(len(rm)-2))+rm[2:]
         num_b=4
-        print("EXECUTE: ADD", op1, "and", op2)
+        print("EXECUTE: SW ", op1, "and", op2)
         return
     elif (ALUop == 18):  # beq
         if(op1==op2):
             is_branch=1
             Branch_target_add=pc+offset
-        print("EXECUTE: BEQ", op1, "and", op2)
+        print("EXECUTE: BEQ ", op1, "and", op2)
         return
     elif (ALUop == 19):  # bne
         if (op1 != op2):
             is_branch = 1
             Branch_target_add=pc+offset
-        print("EXECUTE: BNE", op1, "and", op2)
+        print("EXECUTE: BNE ", op1, "and", op2)
         return
        
     elif (ALUop == 20):  # blt
         if (op1 < op2):
             is_branch = 1
             Branch_target_add=pc+offset
-        print("EXECUTE: BLT", op1, "and", op2)
+        print("EXECUTE: BLT ", op1, "and", op2)
         return
     elif (ALUop == 21):  # bge
         if (op1 >= op2):
             is_branch = 1
             Branch_target_add=pc+offset
-        print("EXECUTE: BGE", op1, "and", op2)
+        print("EXECUTE: BGE ", op1, "and", op2)
         return
     elif (ALUop == 22):  # jal
         rm=hex(pc+4)
         rm="0x"+'0'*(8-(len(rm)-2))+rm[2:]
         pc=pc+offset
+        print("EXECUTE: JAL")
         return
     elif (ALUop == 23):  # jalr
         rm=hex(pc+4)
         rm="0x"+'0'*(8-(len(rm)-2))+rm[2:]
         pc=rs1+op2
+        print("EXECUTE: JALR")
         return
     elif (ALUop == 24):  # lui
-        rm=immU
+        rm=hex(immU)
         rm="0x"+'0'*(8-(len(rm)-2))+rm[2:]
+        print("EXECUTE: LUI")
         return
     elif (ALUop == 25):  # auipc
-        rm=immU
+        rm=hex(immU)
         rm="0x"+'0'*(8-(len(rm)-2))+rm[2:]
         is_branch=2
+        print("EXECUTE: AUIPC")
         return
     else:
         print("error: no matching ALU operation is possible for this instruction")
@@ -411,23 +415,24 @@ def memory_access():
             print("MEMORY ACCESSING: LOAD HALFWORD", ma, " from ", rm)
             return
         elif (num_b==4): #lw
-            ma = "0x"+data_memory[hex(rm)] + data_memory[hex(int(rm,16)+1)] + data_memory[hex(int(rm,16)+2)] + data_memory[hex(int(rm,16)+3)]
+            ma = "0x"+data_memory[rm] + data_memory[hex(int(rm,16)+1)] + data_memory[hex(int(rm,16)+2)] + data_memory[hex(int(rm,16)+3)]
             print("MEMORY ACCESSING: LOAD WORD", ma, " from ", rm)
             return
         else:
             print("Invalid Memory operation")
     else:
+        print(num_b,x[rs2],rm)
         if (num_b==1): #sb
-            data_memory[hex(rm)] = x[rs2][2:4]
+            data_memory[rm] = x[rs2][2:4]
             print("MEMORY ACCESSING: STORE BYTE", rs2, " to ", rm)
             return
         elif (num_b==2): #sh
-            data_memory[hex(rm)] = x[rs2][2:4]
+            data_memory[rm] = x[rs2][2:4]
             data_memory[hex(int(rm,16)+1)] = x[rs2][4:6]
             print("MEMORY ACCESSING: STORE HALFWORD", rs2, " to ", rm)
             return
         elif (num_b==4): #sw
-            data_memory[hex(rm)] = x[rs2][2:4]
+            data_memory[rm] = x[rs2][2:4]
             data_memory[hex(int(rm,16)+1)] = x[rs2][4:6]
             data_memory[hex(int(rm,16)+2)] = x[rs2][6:8]
             data_memory[hex(int(rm,16)+3)] = x[rs2][8:10]
@@ -438,43 +443,79 @@ def memory_access():
 
 
 def write_back():
-    global result_write
+    global result_write,pc_new,pc
     if(RFWrite==1):
         if(Result_select == 0):
             result_write = rm
         elif (Result_select == 1):
             result_write = ma
         elif (Result_select == 2):
-            immU=hex(immU)
-            immU="0x"+'0'*(8-(len(immU)-2))+immU[2:]
             result_write=immU
         elif(Result_select == 3):
             pc_new=hex(pc_new)
             pc_new="0x"+'0'*(8-(len(pc_new)-2))+pc_new[2:]
             result_write=pc_new
         x[rd] = result_write
-        
+    # print(is_branch)     
     if is_branch==0:
         pc=pc_new
     elif is_branch==1:
         pc=Branch_target_add
     else:
+        # print(rm,pc)
         pc=int(rm,16)
     print("WRITING REGISTER FILE ", rd, " with ", result_write)
+    # print(pc)
     return
 
 def terminate():
     if(instruction_memory[pc]+instruction_memory[pc+1]+instruction_memory[pc+2]+instruction_memory[pc+3]):
         exit(1)
 
+def OutputFile_mc(file_name):
+    file=open(file_name,"w")
+    i="0x0"
+    for i in instruction_memory:
+        curr= '0x'+ (''.join(instruction_memory[i][::-1]))
+        file.write(i+''+curr+"\n")
+    i=hex(int(i,16)+4)
+    file.write(i+"\n")
+    for j in data_memory:
+        if j=="0x7fffffec":
+            break
+        curr = '0x'
+        for k in data_memory[i][::1]:
+            curr+= '0'*(2-len(hex(j)[2:])) +hex(j)[2:]
+        file.write(i+' '+curr+'\n')
+
+def OutputFile_txt():
+    outFile=open("output.txt",'w')
+    print("REGISTERS")
+    outFile.write("REGISTERS\n")
+    for i in range (len(x)):
+        print('x'+str(i)+' =',x[i])
+        outFile.write('x'+str(i)+' = '+str(x[i])+'\n')
+    print()
+    outFile.write('\n')
+    print("PC = ",hex(pc))
+    outFile.write("PC = "+hex(pc))
+    print()
+    outFile.write('\n')
+
+
 if __name__ == "__main__":
+    read_from_file("fibonacci.mc")
     while (True):
         fetch()
         decode()
         execute()
-        if terminate:
-            exit(1)
+        # if terminate:
+        #     exit(1)
         memory_access()
         write_back()
+        print(pc)
         clk += 1
+        if(clk==67):
+            break
         print("Clock CYCLE:", clk, '\n')
+    print(data_memory)
