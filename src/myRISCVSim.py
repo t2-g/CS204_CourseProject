@@ -152,6 +152,9 @@ def sign_extend():
 
 def fetch():
     global binary_instruction, clk
+    if(pc<0):
+        print("pc negative")
+        exit(1)
     IR = '0x'+instruction_memory["0x"+'0'*(8-(len(hex(pc))-2))+hex(pc)[2:]]+instruction_memory["0x"+'0'*(8-(len(hex(pc+1))-2))+hex(pc+1)[
         2:]] + instruction_memory["0x"+'0'*(8-(len(hex(pc+2))-2))+hex(pc+2)[2:]]+instruction_memory["0x"+'0'*(8-(len(hex(pc+3))-2))+hex(pc+3)[2:]]
     binary_instruction = bin(int(IR, 16))[2:]
@@ -170,6 +173,7 @@ def decode():
     rd = int(binary_instruction[20:25], 2)
     sign_extend()
     # decoded operand 1
+    # 2**32 = 4294967296
     if x[rs1][3]=='f':
         op1=int(x[rs1],16)-4294967296
     else:
@@ -332,7 +336,7 @@ def decode():
 
 
 def execute():
-    global rm, is_branch, Branch_trg_sel, offset, Branch_target_add, num_b, pc_new, pc, op2, Op2_Select, Mem_op
+    global rm, is_branch, Branch_trg_sel, offset, Branch_target_add, num_b, pc_new, pc, op2, Op2_Select, Mem_op,Alu_result
     pc_new = pc+4
 
     # selection of the second operand
@@ -553,13 +557,15 @@ def execute():
     elif (ALUop == 22):  # jal
         rm = hex(pc+4)
         rm = "0x"+'0'*(8-(len(rm)-2))+rm[2:]
-        Branch_target_add = pc+offset
+        Alu_result = pc+offset
+        is_branch=2
         print("EXECUTE: JAL")
         return
     elif (ALUop == 23):  # jalr
         rm = hex(pc+4)
         rm = "0x"+'0'*(8-(len(rm)-2))+rm[2:]
-        Branch_target_add = rs1+op2
+        Alu_result = rs1+op2
+        is_branch=2
         print("EXECUTE: JALR")
         return
     elif (ALUop == 24):  # lui
@@ -589,50 +595,50 @@ def memory_access():
     if (Mem_op == 0):
         print("no memory operation")
         return
-    global ma
+    global ma,num_b,mem_read,data_memory
     if mem_read == 1:
         if (num_b == 1):  # lb
-            ma = "0x"+data_memory[rm]
+            ma = "0x000000"+data_memory[rm]
             print("MEMORY ACCESSING: LOAD BYTE", ma, " from ", rm)
             return
         elif (num_b == 2):  # lh
-            ma = "0x"+data_memory[rm] + data_memory[hex(int(rm, 16)+1)]
+            ma = "0x0000"+data_memory[rm] + data_memory["0x"+'0'*(8-(len(hex(int(rm, 16)+1))-2))+hex(int(rm, 16)+1)[2:]]
             print("MEMORY ACCESSING: LOAD HALFWORD", ma, " from ", rm)
             return
         elif (num_b == 4):  # lw
-            ma = "0x"+data_memory[rm] + data_memory[hex(int(rm, 16)+1)] + data_memory[hex(
-                int(rm, 16)+2)] + data_memory[hex(int(rm, 16)+3)]
+            ma = "0x"+data_memory[rm] + data_memory["0x"+'0'*(8-(len(hex(int(rm, 16)+1))-2))+hex(int(rm, 16)+1)[2:]] + data_memory["0x"+'0'*(8-(len(hex(int(rm, 16)+2))-2))+hex(int(rm, 16)+2)[2:]] + data_memory["0x"+'0'*(8-(len(hex(int(rm, 16)+3))-2))+hex(int(rm, 16)+3)[2:]]
             print("MEMORY ACCESSING: LOAD WORD", ma, " from ", rm)
             return
         else:
             print("Invalid Memory operation")
+            exit(1)
     else:
-        print(num_b, x[rs2], rm)
         if (num_b == 1):  # sb
             data_memory[rm] = x[rs2][2:4]
             print("MEMORY ACCESSING: STORE BYTE", rs2, " to ", rm)
             return
         elif (num_b == 2):  # sh
             data_memory[rm] = x[rs2][2:4]
-            data_memory[hex(int(rm, 16)+1)] = x[rs2][4:6]
+            data_memory["0x"+'0'*(8-(len(hex(int(rm, 16)+1))-2))+hex(int(rm, 16)+1)[2:]] = x[rs2][4:6]
             print("MEMORY ACCESSING: STORE HALFWORD", rs2, " to ", rm)
             return
         elif (num_b == 4):  # sw
             data_memory[rm] = x[rs2][2:4]
-            data_memory[hex(int(rm, 16)+1)] = x[rs2][4:6]
-            data_memory[hex(int(rm, 16)+2)] = x[rs2][6:8]
-            data_memory[hex(int(rm, 16)+3)] = x[rs2][8:10]
+            data_memory["0x"+'0'*(8-(len(hex(int(rm, 16)+1))-2))+hex(int(rm, 16)+1)[2:]] = x[rs2][4:6]
+            data_memory["0x"+'0'*(8-(len(hex(int(rm, 16)+2))-2))+hex(int(rm, 16)+2)[2:]] = x[rs2][6:8]
+            data_memory["0x"+'0'*(8-(len(hex(int(rm, 16)+1))-3))+hex(int(rm, 16)+3)[2:]] = x[rs2][8:10]
             print("MEMORY ACCESSING: STORE WORD", rs2, " to ", rm)
             return
         else:
             print("Invalid Memory operation")
+            exit(1)
 
 
 def write_back():
-    global result_write, pc_new, pc, Branch_target_add, ma
+    global result_write, pc_new, pc, Branch_target_add, ma,Alu_result
     if (RFWrite == 1):
         if (Result_select == 0):
-            result_write = rm
+            result_write=rm
         elif (Result_select == 1):
             result_write = ma
         elif (Result_select == 2):
@@ -643,16 +649,13 @@ def write_back():
             pc_new = "0x"+'0'*(8-(len(pc_new)-2))+pc_new[2:]
             result_write = pc_new
         x[rd] = result_write
-    # print(is_branch)
     if is_branch == 0:
         pc = pc_new
     elif is_branch == 1:
         pc = Branch_target_add
     else:
-        # print(rm,pc)
-        pc = int(rm, 16)
+        pc = Alu_result
     print("WRITING REGISTER FILE ", rd, " with ", result_write)
-    # print(pc)
     return
 
 
