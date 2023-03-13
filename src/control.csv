@@ -21,7 +21,7 @@ ALUop,Instruction Name ,Op2_Select,Mem_op,Mem_read,Mem_write,Result_select,Branc
 19,bne,0,0,0,0,0,0,0,0
 20,blt,0,0,0,0,0,0,0,0
 21,bge,0,0,0,0,0,0,0,0
-22,jal,0,0,0,0,3,1,1,0
-23,jalr,0,0,0,0,3,1,1,0
+22,jal,0,0,0,0,3,1,2,0
+23,jalr,0,0,0,0,3,1,2,0
 24,lui,0,0,0,0,2,0,0,1
 25,auipc,0,0,0,0,2,0,0,1
