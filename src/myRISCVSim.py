@@ -6,7 +6,7 @@ This is the Phase 1 of Course Project to build a simulator that will execute RIS
 |-----------------------------------------------|
 | Keshav Arora       | 2020eeb1177@iitrpr.ac.in |
 | Vasu Bansal        | 2020eeb1217@iitrpr.ac.in |
-| Aakash Garg        | 2020meb1262@iitrpr.ac.in |
+| Akash Garg        | 2020meb1262@iitrpr.ac.in |
 | Tiya Jain          | 2020eeb1213@iitrpr.ac.in |
 -------------------------------------------------
 
