@@ -175,7 +175,7 @@ def decode():
     sign_extend()
     # decoded operand 1
     # 2**32 = 4294967296
-    if x[rs1][3] == 'f':
+    if x[rs1][2] == 'f':
         op1 = int(x[rs1], 16)-4294967296
     else:
         op1 = int(x[rs1], 16)
