@@ -306,6 +306,7 @@ def decode():
             print("End of the Program")
         terminate()
 
+ex_pipeline_reg = {'pc':[0,0], 'rs2':[0, 0], 'immI': [0, 0], 'immS':[0, 0], 'immB': [0, 0], 'immJ': [0, 0], 'op1':[0, 0], 'ALUop': [0, 0]}
 
 def execute():
     # print("Execute Started")
@@ -482,6 +483,7 @@ def execute():
         print("error: no matching ALU operation is possible for this instruction")
         exit(1)
 
+ma_pipeline_reg={'pc':[],'rm':[],'mem_read':}
 
 def memory_access():
     if (Mem_op == 0):
@@ -533,6 +535,7 @@ def memory_access():
                 print("End of the Program")
             terminate()
 
+wb_pipeline_reg={}
 
 def write_back():
     global result_write, pc_new, pc, Branch_target_add, ma
@@ -604,15 +607,13 @@ def OutputFile_txt(file_name):
     file.write("\nRegisterFile\n\n")
     for i in range(len(x)):
         file.write('x'+str(i)+' = '+str(x[i])+'\n')
+nop=0x00000000
+pipeline_reg1={'PC':[0,0],'instruction':[0x0000000,0x00000000]} 
 
-pipeline_reg1={'PC':[(0,0)],'instruction':[]} 
-pipeline_reg2={'PC':[(0,0)],'branch_target':[],'control':[],'instruction':[],'op2':[],''}
-pipeline_reg3={}
-pipeline_reg4={}
-
-def update_pipeline_regs():
+def update_pipeline_regs(register):
+    for i in register:
+        register[i][1]=register[i][0]
     
-
 def clock_cycle_time():
     clk+=1
     time.sleep(1)
