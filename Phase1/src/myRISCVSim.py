@@ -52,6 +52,7 @@ output file.
 '''
 from collections import defaultdict
 import pandas as pd
+import sys
 
 x = ["0x00000000"]*32  # Register File
 x[2] = "0x7FFFFFF0"  # sp - stack pointer
@@ -61,7 +62,7 @@ global pc, clk
 pc = 0
 clk = 0
 
-instruction_memory = defaultdict(lambda: "00")  # Memory for Instructions
+instruction_memory = {}# Memory for Instructions
 data_memory = defaultdict(lambda: "00")  # Memory for Data
 
 
@@ -156,11 +157,16 @@ def fetch():
     if (pc < 0):
         print("pc negative")
         exit(1)
-    IR = '0x'+instruction_memory["0x"+'0'*(8-(len(hex(pc))-2))+hex(pc)[2:]]+instruction_memory["0x"+'0'*(8-(len(hex(pc+1))-2))+hex(pc+1)[
-        2:]] + instruction_memory["0x"+'0'*(8-(len(hex(pc+2))-2))+hex(pc+2)[2:]]+instruction_memory["0x"+'0'*(8-(len(hex(pc+3))-2))+hex(pc+3)[2:]]
-    binary_instruction = bin(int(IR, 16))[2:]
-    binary_instruction = '0'*(32-len(binary_instruction))+binary_instruction
-    print("fetch complete for {clk}")
+    try:
+        IR = '0x'+instruction_memory["0x"+'0'*(8-(len(hex(pc))-2))+hex(pc)[2:]]+instruction_memory["0x"+'0'*(8-(len(hex(pc+1))-2))+hex(pc+1)[
+            2:]] + instruction_memory["0x"+'0'*(8-(len(hex(pc+2))-2))+hex(pc+2)[2:]]+instruction_memory["0x"+'0'*(8-(len(hex(pc+3))-2))+hex(pc+3)[2:]]
+        binary_instruction = bin(int(IR, 16))[2:]
+        binary_instruction = '0'*(32-len(binary_instruction))+binary_instruction
+        print(f"fetch complete for {clk}")
+    except:
+        print("End of the Program")
+        terminate()
+
 # To decode the instruction and reading from register file and generating control signals
 
 
@@ -200,7 +206,7 @@ def decode():
         immU = int(immU, 2)
     else:
         immU = int(immU, 2)-4294967296
-    control_file = pd.read_csv("control.csv")
+    control_file = pd.read_csv(r"C:\Users\sanya\Desktop\Vasu Bansal\CS204_Course Project\CS204_CourseProject\Phase1\src\test\control.csv")
     if opcode == 51:
         if func3 == 0 and func7 == 0:
             print("And operation")
@@ -355,7 +361,7 @@ def decode():
 
 
 def execute():
-    global rm, is_branch, Branch_trg_sel, offset, Branch_target_add, num_b, pc_new, pc, op2, Op2_Select, Mem_op, Alu_result
+    global rm, is_branch, Branch_trg_sel, offset, Branch_target_add, num_b, pc_new, pc,op1,op2, Op2_Select, Mem_op, Alu_result
     pc_new = pc+4
 
     # selection of the second operand
@@ -377,7 +383,7 @@ def execute():
 
     if (ALUop == 0):  # add instruction
         rm = op1 + op2
-        if (rm > 0):
+        if (rm >=0):
             rm = hex(rm)
         else:
             rm = hex(4294967296+rm)
@@ -385,7 +391,7 @@ def execute():
         print("EXECUTE: ", "ADD operation on ", op1, "and", op2)
     elif (ALUop == 1):  # sub instruction
         rm = op1 - op2
-        if (rm > 0):
+        if (rm >=0):
             rm = hex(rm)
         else:
             rm = hex(4294967296+rm)
@@ -393,7 +399,7 @@ def execute():
         print("EXECUTE: ", "SUB operation on ", op1, "and", op2)
     elif (ALUop == 2):  # xor
         rm = op1 ^ op2
-        if (rm > 0):
+        if (rm >= 0):
             rm = hex(rm)
         else:
             rm = hex(4294967296+rm)
@@ -401,7 +407,7 @@ def execute():
         print("EXECUTE: ", "XOR operation on ", op1, "and", op2)
     elif (ALUop == 3):  # or
         rm = op1 | op2
-        if (rm > 0):
+        if (rm >= 0):
             rm = hex(rm)
         else:
             rm = hex(4294967296+rm)
@@ -409,7 +415,7 @@ def execute():
         print("EXECUTE: ", "OR operation on ", op1, "and", op2)
     elif (ALUop == 4):  # and
         rm = op1 & op2
-        if (rm > 0):
+        if (rm >= 0):
             rm = hex(rm)
         else:
             rm = hex(4294967296+rm)
@@ -421,7 +427,7 @@ def execute():
             exit(1)
         else:
             rm = op1 << op2
-        if (rm > 0):
+        if (rm >= 0):
             rm = hex(rm)
         else:
             rm = hex(4294967296+rm)
@@ -430,7 +436,7 @@ def execute():
     elif (ALUop == 6):  # srl
         if (op2 < 0 | op2 > 31):
             print("ERROR: Shift by negative!\n")
-            return
+            exit(1)
         else:
             if op1 >= 0:
                 rm = hex(op1 >> op2)
@@ -449,7 +455,7 @@ def execute():
             exit(1)
         else:
             rm = op1 >> op2
-        if (rm > 0):
+        if (rm >= 0):
             rm = hex(rm)
         else:
             rm = hex(4294967296+rm)
@@ -466,7 +472,7 @@ def execute():
         return
     elif (ALUop == 9):  # addi
         rm = op1+op2
-        if (rm > 0):
+        if (rm >= 0):
             rm = hex(rm)
         else:
             rm = hex(4294967296+rm)
@@ -476,7 +482,7 @@ def execute():
 
     elif (ALUop == 10):  # ori
         rm = op1 | op2
-        if (rm > 0):
+        if (rm >= 0):
             rm = hex(rm)
         else:
             rm = hex(4294967296+rm)
@@ -486,7 +492,7 @@ def execute():
 
     elif (ALUop == 11):  # andi
         rm = op1 & op2
-        if (rm > 0):
+        if (rm >= 0):
             rm = hex(rm)
         else:
             rm = hex(4294967296+rm)
@@ -496,7 +502,7 @@ def execute():
 
     elif (ALUop == 12):  # lb
         rm = op1 + op2
-        if (rm > 0):
+        if (rm >= 0):
             rm = hex(rm)
         else:
             rm = hex(4294967296+rm)
@@ -514,7 +520,7 @@ def execute():
         return
     elif (ALUop == 14):  # lw
         rm = op1 + op2
-        if (rm > 0):
+        if (rm >= 0):
             rm = hex(rm)
         else:
             rm = hex(4294967296+rm)
@@ -523,7 +529,7 @@ def execute():
         return
     elif (ALUop == 15):  # sb
         rm = op1 + op2
-        if (rm > 0):
+        if (rm >= 0):
             rm = hex(rm)
         else:
             rm = hex(4294967296+rm)
@@ -532,7 +538,7 @@ def execute():
         return
     elif (ALUop == 16):  # sh
         rm = op1 + op2
-        if (rm > 0):
+        if (rm >= 0):
             rm = hex(rm)
         else:
             rm = hex(4294967296+rm)
@@ -541,7 +547,7 @@ def execute():
         return
     elif (ALUop == 17):  # sw
         rm = op1 + op2
-        if (rm > 0):
+        if (rm >= 0):
             rm = hex(rm)
         else:
             rm = hex(4294967296+rm)
@@ -549,7 +555,7 @@ def execute():
         print("EXECUTE: SW opeartion on ", op1, "and", op2)
         return
     elif (ALUop == 18):  # beq
-        print(op1,op2)
+        # print(op1,op2)
         if (op1 == op2):
             is_branch = 1
             Branch_target_add = pc+offset
@@ -592,7 +598,7 @@ def execute():
         return
     elif (ALUop == 24):  # lui
         rm = immU
-        if (rm > 0):
+        if (rm >= 0):
             rm = hex(rm)
         else:
             rm = hex(4294967296+rm)
@@ -601,7 +607,7 @@ def execute():
         return
     elif (ALUop == 25):  # auipc
         rm = pc+immU
-        if (rm > 0):
+        if (rm >= 0):
             rm = hex(rm)
         else:
             rm = hex(4294967296+rm)
@@ -695,26 +701,28 @@ def write_back():
 
 
 def terminate():
-    OutputFile_txt("abc.txt")
+    OutputFile_txt(r"C:\Users\sanya\Desktop\Vasu Bansal\CS204_Course Project\CS204_CourseProject\Phase1\src\test\abc.txt")
     exit(1)
 
 
 def OutputFile_txt(file_name):
     file = open(file_name, "w")
-    m = "0x0"
+    m = "0x00000000"
     j = 0
-    k = "0x0"
+    k = "0x00000000"
+    # print(sys.getsizeof(instruction_memory))
+    # print(instruction_memory)
     file.write("Instruction Memory\n\n")
-    for i in instruction_memory:
+    for i in instruction_memory.keys():
+        # print(i,'\n')
         if (j == 0):
             curr = '0x'
         curr = curr + instruction_memory[i]
         j = j + 1
-        i = hex(int(m, 16) + 1)
         if (j == 4):
             file.write(k + " " + curr + "\n")
-            k = i
-        j %= 4
+            k="0x"+'0'*(8-(len(hex(int(i,16)+1))-2))+hex(int(i,16)+1)[2:]
+            j=0
 
     file.write("\nData Memory\n\n")
     l = 0
@@ -737,7 +745,7 @@ def OutputFile_txt(file_name):
 
 
 if __name__ == "__main__":
-    read_from_file("fibonacci.mc")
+    read_from_file(r"C:\Users\sanya\Desktop\Vasu Bansal\CS204_Course Project\CS204_CourseProject\Phase1\src\test\nsum.mc")
     while (True):
         fetch()
         decode()
