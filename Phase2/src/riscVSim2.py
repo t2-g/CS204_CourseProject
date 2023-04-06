@@ -23,8 +23,6 @@ clk = 0
 instruction_memory = defaultdict(lambda: "00")  # Memory for Instructions
 data_memory = defaultdict(lambda: "00")  # Memory for Data
 
-
-
 def read_from_file(file_name):
     flag = 0  # To distinguish between instruction and data
     try:
@@ -122,6 +120,7 @@ def fetch():
     print("fetch complete for {clk}")
 # To decode the instruction and reading from register file and generating control signals
 
+dec_pipeline_reg = {'pc':[0,0], 'binary_instruction':[0, 0]}
 
 def decode():
     global rs1, rs2, rd, op1, opcode, func3, func7, immB, immJ, immI, immS, immU, Op2_Select, Mem_op, ALUop, Result_select, Branch_trg_sel, is_branch, RFWrite, mem_read, mem_write, binary_instruction, num_b
@@ -483,7 +482,7 @@ def execute():
         print("error: no matching ALU operation is possible for this instruction")
         exit(1)
 
-ma_pipeline_reg={'pc':[],'rm':[],'mem_read':}
+ma_pipeline_reg={'pc':[0,0],'rm':[0,0],'mem_read':[0,0]}
 
 def memory_access():
     if (Mem_op == 0):
@@ -535,7 +534,7 @@ def memory_access():
                 print("End of the Program")
             terminate()
 
-wb_pipeline_reg={}
+wb_pipeline_reg={pc_new:[0,0], pc:[0,0], result_write:[0,0], Branch_target_add:[0,0], ma:[0,0]}
 
 def write_back():
     global result_write, pc_new, pc, Branch_target_add, ma

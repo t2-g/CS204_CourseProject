@@ -6,7 +6,7 @@ This is the Phase 1 of Course Project to build a simulator that will execute RIS
 |-----------------------------------------------|
 | Keshav Arora       | 2020eeb1177@iitrpr.ac.in |
 | Vasu Bansal        | 2020eeb1217@iitrpr.ac.in |
-| Akash Garg        | 2020meb1262@iitrpr.ac.in |
+| Akash Garg         | 2020meb1262@iitrpr.ac.in |
 | Tiya Jain          | 2020eeb1213@iitrpr.ac.in |
 -------------------------------------------------
 
@@ -65,6 +65,10 @@ clk = 0
 instruction_memory = {}# Memory for Instructions
 data_memory = defaultdict(lambda: "00")  # Memory for Data
 
+dec_pipeline_reg={'_pc':[0,0], '_binary_instruction':[0, 0]}
+ex_pipeline_reg = {'_pc':[0,0], '_binary_instruction':[0, 0], '_rs2':[0, 0], '_immI': [0, 0], '_immS':[0, 0], '_immB': [0, 0], '_immJ': [0, 0], '_op1':[0, 0], '_ALUop': [0, 0],"_control_sig":[{},{}]}
+ma_pipeline_reg={'_pc':[0,0], '_binary_instruction':[0, 0], '_Alu_result ':[0,0], '_rm':[0,0],"_control_sig":[{},{}]}
+wb_pipeline_reg= { '_pc':[0,0], '_binary_instruction':[0, 0], '_pc_new':[0,0], '_result_write':[0,0], '_Branch_target_add':[0,0], '_ma':[0,0],"_control_sig":[{},{}]}
 
 def read_from_file(file_name):
     flag = 0  # To distinguish between instruction and data
@@ -107,7 +111,7 @@ def read_from_file(file_name):
 
 
 def control_signal(_ALUop, _Op2_Select, _Mem_op, _mem_read, _mem_write, _Result_select, _Branch_trg_sel, _is_branch, _RFWrite):
-    global Op2_Select, Mem_op, ALUop, Result_select, Branch_trg_sel, is_branch, RFWrite, mem_read, mem_write
+    # global Op2_Select, Mem_op, ALUop, Result_select, Branch_trg_sel, is_branch, RFWrite, mem_read, mem_write
     ALUop = _ALUop
     Op2_Select = _Op2_Select
     Mem_op = _Mem_op
@@ -118,10 +122,12 @@ def control_signal(_ALUop, _Op2_Select, _Mem_op, _mem_read, _mem_write, _Result_
     mem_read = _mem_read
     mem_write = _mem_write
     print("control generated")
+    return {"ALUop":ALUop,"Op2_Select":Op2_Select,"Mem_op":Mem_op,"Result_select":Result_select,"Branch_trg_sel":Branch_trg_sel,"is_branch":is_branch,"RFWrite":RFWrite,"mem_read":mem_read,"mem_write":mem_write}
+
 
 
 def sign_extend():
-    global immI, immU, immJ, immB, immS, binary_instruction
+    # global immI, immU, immJ, immB, immS, binary_instruction
     # I-Type
     tempI = binary_instruction[0:12]
     # S-Type
@@ -149,11 +155,11 @@ def sign_extend():
         immB = '1'*(32-len(tempB))+tempB
         immU = tempU + '0'*12
         immJ = '1'*(32-len(tempJ))+tempJ
+    
 # To fetch the instruction from instruction_memory
 
-
 def fetch():
-    global binary_instruction, clk
+    global clk
     if (pc < 0):
         print("pc negative")
         exit(1)
@@ -162,13 +168,14 @@ def fetch():
             2:]] + instruction_memory["0x"+'0'*(8-(len(hex(pc+2))-2))+hex(pc+2)[2:]]+instruction_memory["0x"+'0'*(8-(len(hex(pc+3))-2))+hex(pc+3)[2:]]
         binary_instruction = bin(int(IR, 16))[2:]
         binary_instruction = '0'*(32-len(binary_instruction))+binary_instruction
+        dec_pipeline_reg['_pc'][0]=pc
+        dec_pipeline_reg['_binary_instruction'][0]=binary_instruction
         print(f"fetch complete for {clk}")
     except:
         print("End of the Program")
         terminate()
 
 # To decode the instruction and reading from register file and generating control signals
-
 
 def decode():
     global rs1, rs2, rd, op1, opcode, func3, func7, immB, immJ, immI, immS, immU, Op2_Select, Mem_op, ALUop, Result_select, Branch_trg_sel, is_branch, RFWrite, mem_read, mem_write, binary_instruction, num_b
@@ -210,39 +217,39 @@ def decode():
     if opcode == 51:
         if func3 == 0 and func7 == 0:
             print("And operation")
-            control_signal(control_file["ALUop"][0], control_file["Op2_Select"][0], control_file["Mem_op"][0], control_file["Mem_read"][0], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][0], control_file["Op2_Select"][0], control_file["Mem_op"][0], control_file["Mem_read"][0], control_file["Mem_write"]
                            [0], control_file["Result_select"][0], control_file["Branch_trg_sel"][0], control_file["is_branch"][0], control_file["RFWrite"][0])
         elif func3 == 0 and func7 == 32:  # SUB
             print("Sub operation")
-            control_signal(control_file["ALUop"][1], control_file["Op2_Select"][1], control_file["Mem_op"][1], control_file["Mem_read"][1], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][1], control_file["Op2_Select"][1], control_file["Mem_op"][1], control_file["Mem_read"][1], control_file["Mem_write"]
                            [1], control_file["Result_select"][1], control_file["Branch_trg_sel"][1], control_file["is_branch"][1], control_file["RFWrite"][1])
         elif func3 == 4 and func7 == 0:  # XOR
             print("XOR operation")
-            control_signal(control_file["ALUop"][2], control_file["Op2_Select"][2], control_file["Mem_op"][2], control_file["Mem_read"][2], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][2], control_file["Op2_Select"][2], control_file["Mem_op"][2], control_file["Mem_read"][2], control_file["Mem_write"]
                            [2], control_file["Result_select"][2], control_file["Branch_trg_sel"][2], control_file["is_branch"][2], control_file["RFWrite"][2])
         elif func3 == 6 and func7 == 0:  # OR
             print("OR operation")
-            control_signal(control_file["ALUop"][3], control_file["Op2_Select"][3], control_file["Mem_op"][3], control_file["Mem_read"][3], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][3], control_file["Op2_Select"][3], control_file["Mem_op"][3], control_file["Mem_read"][3], control_file["Mem_write"]
                            [3], control_file["Result_select"][3], control_file["Branch_trg_sel"][3], control_file["is_branch"][3], control_file["RFWrite"][3])
         elif func3 == 7 and func7 == 0:  # AND
             print("And operation")
-            control_signal(control_file["ALUop"][4], control_file["Op2_Select"][4], control_file["Mem_op"][4], control_file["Mem_read"][4], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][4], control_file["Op2_Select"][4], control_file["Mem_op"][4], control_file["Mem_read"][4], control_file["Mem_write"]
                            [4], control_file["Result_select"][4], control_file["Branch_trg_sel"][4], control_file["is_branch"][4], control_file["RFWrite"][4])
         elif func3 == 1 and func7 == 0:  # SLL
             print("sll operation")
-            control_signal(control_file["ALUop"][5], control_file["Op2_Select"][5], control_file["Mem_op"][5], control_file["Mem_read"][5], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][5], control_file["Op2_Select"][5], control_file["Mem_op"][5], control_file["Mem_read"][5], control_file["Mem_write"]
                            [5], control_file["Result_select"][5], control_file["Branch_trg_sel"][5], control_file["is_branch"][5], control_file["RFWrite"][5])
         elif func3 == 5 and func7 == 0:  # SRL
             print("srl operation")
-            control_signal(control_file["ALUop"][6], control_file["Op2_Select"][6], control_file["Mem_op"][6], control_file["Mem_read"][6], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][6], control_file["Op2_Select"][6], control_file["Mem_op"][6], control_file["Mem_read"][6], control_file["Mem_write"]
                            [6], control_file["Result_select"][6], control_file["Branch_trg_sel"][6], control_file["is_branch"][6], control_file["RFWrite"][6])
         elif func3 == 5 and func7 == 32:  # SRA
             print("sra operation")
-            control_signal(control_file["ALUop"][7], control_file["Op2_Select"][7], control_file["Mem_op"][7], control_file["Mem_read"][7], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][7], control_file["Op2_Select"][7], control_file["Mem_op"][7], control_file["Mem_read"][7], control_file["Mem_write"]
                            [7], control_file["Result_select"][7], control_file["Branch_trg_sel"][7], control_file["is_branch"][7], control_file["RFWrite"][7])
         elif func3 == 2 and func7 == 0:  # SLT
             print("slt operation")
-            control_signal(control_file["ALUop"][8], control_file["Op2_Select"][8], control_file["Mem_op"][8], control_file["Mem_read"][8], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][8], control_file["Op2_Select"][8], control_file["Mem_op"][8], control_file["Mem_read"][8], control_file["Mem_write"]
                            [8], control_file["Result_select"][8], control_file["Branch_trg_sel"][8], control_file["is_branch"][8], control_file["RFWrite"][8])
         else:
             if (instruction_memory[pc]+instruction_memory[pc+1]+instruction_memory[pc+2]+instruction_memory[pc+3] != "00000000"):
@@ -253,15 +260,15 @@ def decode():
     elif opcode == 19:  # I - type
         if func3 == 0:  # addi
             print("addi operation")
-            control_signal(control_file["ALUop"][9], control_file["Op2_Select"][9], control_file["Mem_op"][9], control_file["Mem_read"][9], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][9], control_file["Op2_Select"][9], control_file["Mem_op"][9], control_file["Mem_read"][9], control_file["Mem_write"]
                            [9], control_file["Result_select"][9], control_file["Branch_trg_sel"][9], control_file["is_branch"][9], control_file["RFWrite"][9])
         elif func3 == 6:  # ori
             print("ori operation")
-            control_signal(control_file["ALUop"][10], control_file["Op2_Select"][10], control_file["Mem_op"][10], control_file["Mem_read"][10], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][10], control_file["Op2_Select"][10], control_file["Mem_op"][10], control_file["Mem_read"][10], control_file["Mem_write"]
                            [10], control_file["Result_select"][10], control_file["Branch_trg_sel"][10], control_file["is_branch"][10], control_file["RFWrite"][10])
         elif func3 == 7:  # andi
             print("andi operation")
-            control_signal(control_file["ALUop"][11], control_file["Op2_Select"][11], control_file["Mem_op"][11], control_file["Mem_read"][11], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][11], control_file["Op2_Select"][11], control_file["Mem_op"][11], control_file["Mem_read"][11], control_file["Mem_write"]
                            [11], control_file["Result_select"][11], control_file["Branch_trg_sel"][11], control_file["is_branch"][11], control_file["RFWrite"][11])
         else:
             if (instruction_memory[pc]+instruction_memory[pc+1]+instruction_memory[pc+2]+instruction_memory[pc+3] != "0x00000000"):
@@ -272,17 +279,17 @@ def decode():
     elif opcode == 3:
         if func3 == 0:  # lb
             print("lb operation")
-            control_signal(control_file["ALUop"][12], control_file["Op2_Select"][12], control_file["Mem_op"][12], control_file["Mem_read"][12], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][12], control_file["Op2_Select"][12], control_file["Mem_op"][12], control_file["Mem_read"][12], control_file["Mem_write"]
                            [12], control_file["Result_select"][12], control_file["Branch_trg_sel"][12], control_file["is_branch"][12], control_file["RFWrite"][12])
             num_b = 1
         elif func3 == 1:  # lh
             print("lh operation")
-            control_signal(control_file["ALUop"][13], control_file["Op2_Select"][13], control_file["Mem_op"][13], control_file["Mem_read"][13], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][13], control_file["Op2_Select"][13], control_file["Mem_op"][13], control_file["Mem_read"][13], control_file["Mem_write"]
                            [13], control_file["Result_select"][13], control_file["Branch_trg_sel"][13], control_file["is_branch"][13], control_file["RFWrite"][13])
             num_b = 2
         elif func3 == 2:  # lw
             print("lw opeartion")
-            control_signal(control_file["ALUop"][14], control_file["Op2_Select"][14], control_file["Mem_op"][14], control_file["Mem_read"][14], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][14], control_file["Op2_Select"][14], control_file["Mem_op"][14], control_file["Mem_read"][14], control_file["Mem_write"]
                            [14], control_file["Result_select"][14], control_file["Branch_trg_sel"][14], control_file["is_branch"][14], control_file["RFWrite"][14])
             num_b = 4
         else:
@@ -294,17 +301,17 @@ def decode():
     elif opcode == 35:
         if func3 == 0:  # sb
             print("sb operation")
-            control_signal(control_file["ALUop"][15], control_file["Op2_Select"][15], control_file["Mem_op"][15], control_file["Mem_read"][15], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][15], control_file["Op2_Select"][15], control_file["Mem_op"][15], control_file["Mem_read"][15], control_file["Mem_write"]
                            [15], control_file["Result_select"][15], control_file["Branch_trg_sel"][15], control_file["is_branch"][15], control_file["RFWrite"][15])
             num_b = 1
         elif func3 == 1:  # sh
             print("sh operation")
-            control_signal(control_file["ALUop"][16], control_file["Op2_Select"][16], control_file["Mem_op"][16], control_file["Mem_read"][16], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][16], control_file["Op2_Select"][16], control_file["Mem_op"][16], control_file["Mem_read"][16], control_file["Mem_write"]
                            [16], control_file["Result_select"][16], control_file["Branch_trg_sel"][16], control_file["is_branch"][16], control_file["RFWrite"][16])
             num_b = 2
         elif func3 == 2:  # sw
             print("sw operation")
-            control_signal(control_file["ALUop"][17], control_file["Op2_Select"][17], control_file["Mem_op"][17], control_file["Mem_read"][17], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][17], control_file["Op2_Select"][17], control_file["Mem_op"][17], control_file["Mem_read"][17], control_file["Mem_write"]
                            [17], control_file["Result_select"][17], control_file["Branch_trg_sel"][17], control_file["is_branch"][17], control_file["RFWrite"][17])
             num_b = 4
         else:
@@ -316,19 +323,19 @@ def decode():
     elif opcode == 99:
         if func3 == 0:  # beq
             print("beq opeartion")
-            control_signal(control_file["ALUop"][18], control_file["Op2_Select"][18], control_file["Mem_op"][18], control_file["Mem_read"][18], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][18], control_file["Op2_Select"][18], control_file["Mem_op"][18], control_file["Mem_read"][18], control_file["Mem_write"]
                            [18], control_file["Result_select"][18], control_file["Branch_trg_sel"][18], control_file["is_branch"][18], control_file["RFWrite"][18])
         elif func3 == 1:  # bne
             print("bne operation")
-            control_signal(control_file["ALUop"][19], control_file["Op2_Select"][19], control_file["Mem_op"][19], control_file["Mem_read"][19], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][19], control_file["Op2_Select"][19], control_file["Mem_op"][19], control_file["Mem_read"][19], control_file["Mem_write"]
                            [19], control_file["Result_select"][19], control_file["Branch_trg_sel"][19], control_file["is_branch"][19], control_file["RFWrite"][19])
         elif func3 == 4:  # blt
             print("blt operation")
-            control_signal(control_file["ALUop"][20], control_file["Op2_Select"][20], control_file["Mem_op"][20], control_file["Mem_read"][20], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][20], control_file["Op2_Select"][20], control_file["Mem_op"][20], control_file["Mem_read"][20], control_file["Mem_write"]
                            [20], control_file["Result_select"][20], control_file["Branch_trg_sel"][20], control_file["is_branch"][20], control_file["RFWrite"][20])
         elif func3 == 5:  # bge
             print("bge operation")
-            control_signal(control_file["ALUop"][21], control_file["Op2_Select"][21], control_file["Mem_op"][21], control_file["Mem_read"][21], control_file["Mem_write"]
+            control_sig=control_signal(control_file["ALUop"][21], control_file["Op2_Select"][21], control_file["Mem_op"][21], control_file["Mem_read"][21], control_file["Mem_write"]
                            [21], control_file["Result_select"][21], control_file["Branch_trg_sel"][21], control_file["is_branch"][21], control_file["RFWrite"][21])
         else:
             if (instruction_memory[pc]+instruction_memory[pc+1]+instruction_memory[pc+2]+instruction_memory[pc+3] != "00000000"):
@@ -338,19 +345,19 @@ def decode():
             terminate()
     elif opcode == 111:  # jal
         print("jal operation")
-        control_signal(control_file["ALUop"][22], control_file["Op2_Select"][22], control_file["Mem_op"][22], control_file["Mem_read"][22], control_file["Mem_write"]
+        control_sig=control_signal(control_file["ALUop"][22], control_file["Op2_Select"][22], control_file["Mem_op"][22], control_file["Mem_read"][22], control_file["Mem_write"]
                        [22], control_file["Result_select"][22], control_file["Branch_trg_sel"][22], control_file["is_branch"][22], control_file["RFWrite"][22])
     elif opcode == 103 and func3 == 0:  # jalr
         print("Jalr operation")
-        control_signal(control_file["ALUop"][23], control_file["Op2_Select"][23], control_file["Mem_op"][23], control_file["Mem_read"][23], control_file["Mem_write"]
+        control_sig=control_signal(control_file["ALUop"][23], control_file["Op2_Select"][23], control_file["Mem_op"][23], control_file["Mem_read"][23], control_file["Mem_write"]
                        [23], control_file["Result_select"][23], control_file["Branch_trg_sel"][23], control_file["is_branch"][23], control_file["RFWrite"][23])
     elif opcode == 55:  # lui
         print("lui operation")
-        control_signal(control_file["ALUop"][24], control_file["Op2_Select"][24], control_file["Mem_op"][24], control_file["Mem_read"][24], control_file["Mem_write"]
+        control_sig=control_signal(control_file["ALUop"][24], control_file["Op2_Select"][24], control_file["Mem_op"][24], control_file["Mem_read"][24], control_file["Mem_write"]
                        [24], control_file["Result_select"][24], control_file["Branch_trg_sel"][24], control_file["is_branch"][24], control_file["RFWrite"][24])
     elif opcode == 23:  # auipc
         print("Auipc operation")
-        control_signal(control_file["ALUop"][25], control_file["Op2_Select"][25], control_file["Mem_op"][25], control_file["Mem_read"][25], control_file["Mem_write"]
+        control_sig=control_signal(control_file["ALUop"][25], control_file["Op2_Select"][25], control_file["Mem_op"][25], control_file["Mem_read"][25], control_file["Mem_write"]
                        [25], control_file["Result_select"][25], control_file["Branch_trg_sel"][25], control_file["is_branch"][25], control_file["RFWrite"][25])
     else:
         if (instruction_memory[pc]+instruction_memory[pc+1]+instruction_memory[pc+2]+instruction_memory[pc+3] != "00000000"):
