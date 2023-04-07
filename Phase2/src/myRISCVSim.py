@@ -3,7 +3,7 @@ import pandas as pd
 import sys
 import time
 import threading
-
+global null_control_sig,null_imm,null_dec_pr,null_ex_pr,null_ma_pr,null_wb_pr 
 null_control_sig = {"ALUop": 0, "Op2_Select": 0, "Mem_op": 0, "Result_select": 0,
                     "Branch_trg_sel": 0, "is_branch": 0, "RFWrite": 0, "Mem_read": 0, "Mem_write": 0}
 
@@ -180,12 +180,12 @@ def decode():
         print("Decode Complete")
         return
     
-    print(rs1)
+    # print(rs1)
     if x[rs1][2] == 'f':
         print("here1")
         op1 = int(x[rs1], 16)-4294967296
     else:
-        print("here2")
+        # print("here2")
         op1 = int(x[rs1], 16)
     print(x[rs1])
     if (imm["imm_I"][0] == '0'):
@@ -208,7 +208,7 @@ def decode():
         imm["imm_U"] = int(imm["imm_U"], 2)
     else:
         imm["imm_U"] = int(imm["imm_U"], 2)-4294967296
-    control_file = pd.read_csv(r"control.csv")
+    control_file = pd.read_csv(r"C:\Users\sanya\Desktop\Vasu Bansal\CS204_Course Project\CS204_CourseProject\Phase2\src\control.csv")
     control_sig = null_control_sig
     num_b = 0
     if opcode == 51:
@@ -673,7 +673,9 @@ def execute():
         terminate()
     # print("pc_new", pc_new)
     # print("ex[pc][0] =", ex_pipeline_reg["_pc"][0])
-    if(pc_old != ma_pipeline_reg["_pc_new"][0]):
+    ma_pipeline_reg["_pc_new"][0]=pc_new
+    control_signal["is_branch"]=is_branch
+    if(pc_old+4 != ma_pipeline_reg["_pc_new"][0]):
         flags[0] = 1
         flags[1] = 1
         print("flags =", flags)
@@ -811,7 +813,7 @@ def write_back():
 
 
 def terminate():
-    OutputFile_txt(r"abc.txt")
+    OutputFile_txt(r"C:\Users\sanya\Desktop\Vasu Bansal\CS204_Course Project\CS204_CourseProject\Phase2\src\abc.txt")
     exit(1)
 
 
@@ -887,7 +889,7 @@ def clock_cycle_time():
 
 
 if __name__ == "__main__":
-    read_from_file(r"test.mc")
+    read_from_file(r"C:\Users\sanya\Desktop\Vasu Bansal\CS204_Course Project\CS204_CourseProject\Phase2\src\test.mc")
     if(pipelining_knob == 1):
         while (True):
             print("CLOCK CYCLE " + str(clk))
