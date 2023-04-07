@@ -5,7 +5,7 @@ memory_values = []
 for line in dump_contents:
     memory_values.append(line)
 
-with open("./output.mc", "w") as mc_file:
+with open("./test.mc", "w") as mc_file:
     for i, memory_value in enumerate(memory_values):
         address = str(hex(i*4))
         mc_file.write(f"{address} {memory_value}")

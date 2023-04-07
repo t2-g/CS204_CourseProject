@@ -9,19 +9,20 @@ x[2] = "0x7FFFFFF0"  # sp - stack pointer
 x[3] = "0x10000000"  # the beginning address of data segment of memory
 
 global pc, clk
-global pipelining_knob,data_forwarding_knob,register_file_knob,pipeline_registers_knob,specify_instruction_knob
+global pipelining_knob, data_forwarding_knob, register_file_knob, pipeline_registers_knob, specify_instruction_knob
 
-pipelining_knob=1
-data_forwarding_knob=1
-register_file_knob=1
-pipeline_registers_knob=1
-specify_instruction_knob=1
+pipelining_knob = 1
+data_forwarding_knob = 1
+register_file_knob = 1
+pipeline_registers_knob = 1
+specify_instruction_knob = 1
 
 pc = 0
 clk = 0
 
 instruction_memory = defaultdict(lambda: "00")  # Memory for Instructions
 data_memory = defaultdict(lambda: "00")  # Memory for Data
+
 
 def read_from_file(file_name):
     flag = 0  # To distinguish between instruction and data
@@ -32,7 +33,7 @@ def read_from_file(file_name):
             # print(tmp)
             if len(tmp) == 2:
                 address, instruction = tmp[0], tmp[1]
-            if flag == 0: # Storing Instruction in instruction_memory
+            if flag == 0:  # Storing Instruction in instruction_memory
                 if(instruction == '$'):
                     flag = 1
                     continue
@@ -120,7 +121,9 @@ def fetch():
     print("fetch complete for {clk}")
 # To decode the instruction and reading from register file and generating control signals
 
-dec_pipeline_reg = {'pc':[0,0], 'binary_instruction':[0, 0]}
+
+dec_pipeline_reg = {'pc': [0, 0], 'binary_instruction': [0, 0]}
+
 
 def decode():
     global rs1, rs2, rd, op1, opcode, func3, func7, immB, immJ, immI, immS, immU, Op2_Select, Mem_op, ALUop, Result_select, Branch_trg_sel, is_branch, RFWrite, mem_read, mem_write, binary_instruction, num_b
@@ -152,7 +155,8 @@ def decode():
         immU = int(immU, 2)
     else:
         immU = int(immU, 2)-4294967296
-    control_file = pd.read_csv(r"C:\Users\sanya\Desktop\Vasu Bansal\CS204_Course Project\CS204_CourseProject\Phase2\src\test\control.csv")
+    control_file = pd.read_csv(
+        r"C:\Users\sanya\Desktop\Vasu Bansal\CS204_Course Project\CS204_CourseProject\Phase2\src\test\control.csv")
     if opcode == 51:
         if func3 == 0 and func7 == 0:
             print("And operation")
@@ -305,7 +309,10 @@ def decode():
             print("End of the Program")
         terminate()
 
-ex_pipeline_reg = {'pc':[0,0], 'rs2':[0, 0], 'immI': [0, 0], 'immS':[0, 0], 'immB': [0, 0], 'immJ': [0, 0], 'op1':[0, 0], 'ALUop': [0, 0]}
+
+ex_pipeline_reg = {'pc': [0, 0], 'rs2': [0, 0], 'immI': [0, 0], 'immS': [
+    0, 0], 'immB': [0, 0], 'immJ': [0, 0], 'op1': [0, 0], 'ALUop': [0, 0]}
+
 
 def execute():
     # print("Execute Started")
@@ -482,7 +489,9 @@ def execute():
         print("error: no matching ALU operation is possible for this instruction")
         exit(1)
 
-ma_pipeline_reg={'pc':[0,0],'rm':[0,0],'mem_read':[0,0]}
+
+ma_pipeline_reg = {'pc': [0, 0], 'rm': [0, 0], 'mem_read': [0, 0]}
+
 
 def memory_access():
     if (Mem_op == 0):
@@ -534,7 +543,10 @@ def memory_access():
                 print("End of the Program")
             terminate()
 
-wb_pipeline_reg={pc_new:[0,0], pc:[0,0], result_write:[0,0], Branch_target_add:[0,0], ma:[0,0]}
+
+wb_pipeline_reg = {pc_new: [0, 0], pc: [0, 0], result_write: [
+    0, 0], Branch_target_add: [0, 0], ma: [0, 0]}
+
 
 def write_back():
     global result_write, pc_new, pc, Branch_target_add, ma
@@ -565,7 +577,8 @@ def write_back():
 
 
 def terminate():
-    OutputFile_txt(r"C:\Users\sanya\Desktop\Vasu Bansal\CS204_Course Project\CS204_CourseProject\Phase2\src\test\abc.txt")
+    OutputFile_txt(
+        r"C:\Users\sanya\Desktop\Vasu Bansal\CS204_Course Project\CS204_CourseProject\Phase2\src\test\abc.txt")
     # OutputFile_txt("abc.txt")
     exit(1)
 
@@ -578,16 +591,16 @@ def OutputFile_txt(file_name):
     file.write("Instruction Memory\n\n")
     for i in instruction_memory:
         # print(instruction_memory[i])
-        if(j==0):
+        if(j == 0):
             curr = '0x'
         curr = curr + instruction_memory[i]
         j = j + 1
-        i = hex(int(m,16) + 1)
+        i = hex(int(m, 16) + 1)
         if(j == 4):
             file.write(k + " " + curr + "\n")
             k = i
         j %= 4
-    
+
     file.write("\nData Memory\n\n")
     l = 0
     k = ""
@@ -606,21 +619,25 @@ def OutputFile_txt(file_name):
     file.write("\nRegisterFile\n\n")
     for i in range(len(x)):
         file.write('x'+str(i)+' = '+str(x[i])+'\n')
-nop=0x00000000
-pipeline_reg1={'PC':[0,0],'instruction':[0x0000000,0x00000000]} 
+
+
+nop = 0x00000000
 
 def update_pipeline_regs(register):
     for i in register:
-        register[i][1]=register[i][0]
-    
+        register[i][1] = register[i][0]
+
+
 def clock_cycle_time():
-    clk+=1
+    clk += 1
     time.sleep(1)
     print("Cycle CYCLE:", clk, '\n')
 
+
 if __name__ == "__main__":
-    read_from_file(r"C:\Users\sanya\Desktop\Vasu Bansal\CS204_Course Project\CS204_CourseProject\Phase2\src\test\nsum.mc")
-    if(pipelining_knob==1):
+    read_from_file(
+        r"C:\Users\sanya\Desktop\Vasu Bansal\CS204_Course Project\CS204_CourseProject\Phase2\src\test\nsum.mc")
+    if(pipelining_knob == 1):
         while (True):
             clock_cycle = threading.Thread(target=clock_cycle_time())
             p1 = threading.Thread(target=fetch())
@@ -633,8 +650,8 @@ if __name__ == "__main__":
             p2.start()
             p3.start()
             p4.start()
-            p5.start()    
-            clock_cycle.join()                                                        
+            p5.start()
+            clock_cycle.join()
     else:
         while(True):
             fetch()

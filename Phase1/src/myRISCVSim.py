@@ -206,7 +206,7 @@ def decode():
         immU = int(immU, 2)
     else:
         immU = int(immU, 2)-4294967296
-    control_file = pd.read_csv(r"C:\Users\sanya\Desktop\Vasu Bansal\CS204_Course Project\CS204_CourseProject\Phase1\src\test\control.csv")
+    control_file = pd.read_csv(r"control.csv")
     if opcode == 51:
         if func3 == 0 and func7 == 0:
             print("And operation")
@@ -701,7 +701,7 @@ def write_back():
 
 
 def terminate():
-    OutputFile_txt(r"C:\Users\sanya\Desktop\Vasu Bansal\CS204_Course Project\CS204_CourseProject\Phase1\src\test\abc.txt")
+    OutputFile_txt(r"abc.txt")
     exit(1)
 
 
@@ -745,7 +745,8 @@ def OutputFile_txt(file_name):
 
 
 if __name__ == "__main__":
-    read_from_file(r"C:\Users\sanya\Desktop\Vasu Bansal\CS204_Course Project\CS204_CourseProject\Phase1\src\test\nsum.mc")
+    read_from_file(
+        r"nsum.mc")
     while (True):
         fetch()
         decode()
