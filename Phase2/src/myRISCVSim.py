@@ -813,7 +813,7 @@ def write_back():
 
 
 def terminate():
-    OutputFile_txt(r"C:\Users\sanya\Desktop\Vasu Bansal\CS204_Course Project\CS204_CourseProject\Phase2\src\abc.txt")
+    OutputFile_txt(r"G:\My Drive\Recovery\Sanya Di\CS204_Course Project\CS204_CourseProject\Phase2\src\test\abc.txt")
     exit(1)
 
 
@@ -889,40 +889,40 @@ def clock_cycle_time():
 
 
 if __name__ == "__main__":
-    read_from_file(r"C:\Users\sanya\Desktop\Vasu Bansal\CS204_Course Project\CS204_CourseProject\Phase2\src\test.mc")
-    if(pipelining_knob == 1):
-        while (True):
-            print("CLOCK CYCLE " + str(clk))
-            clock_cycle = threading.Thread(target=clock_cycle_time())
-            update_pipeline_regs(dec_pipeline_reg, 0)
-            update_pipeline_regs(ex_pipeline_reg, 1)
-            update_pipeline_regs(ma_pipeline_reg, 2)
-            update_pipeline_regs(wb_pipeline_reg, 3)
-            p1 = threading.Thread(target=fetch())
-            p2 = threading.Thread(target=decode())
-            p3 = threading.Thread(target=execute())
-            p4 = threading.Thread(target=memory_access())
-            p5 = threading.Thread(target=write_back())
-            clock_cycle.start()
-            p1.start()
-            p2.start()
-            p3.start()
-            p4.start()
-            p5.start()
-            clock_cycle.join()
-            pc+=4
-    else:
-        while(True):
-            fetch()
-            decode()
-            execute()
-            if terminate:
-                exit(1)
-            memory_access()
-            write_back()
-            print(pc)
-            clk += 1
-            print("Clock CYCLE:", clk, '\n')
+    read_from_file(r"G:\My Drive\Recovery\Sanya Di\CS204_Course Project\CS204_CourseProject\Phase2\src\test.mc")
+    pipelining_knob=input()
+    while (True):
+        print("CLOCK CYCLE " + str(clk))
+        clock_cycle = threading.Thread(target=clock_cycle_time())
+        update_pipeline_regs(dec_pipeline_reg, 0)
+        update_pipeline_regs(ex_pipeline_reg, 1)
+        update_pipeline_regs(ma_pipeline_reg, 2)
+        update_pipeline_regs(wb_pipeline_reg, 3)
+        p1 = threading.Thread(target=fetch())
+        p2 = threading.Thread(target=decode())
+        p3 = threading.Thread(target=execute())
+        p4 = threading.Thread(target=memory_access())
+        p5 = threading.Thread(target=write_back())
+        clock_cycle.start()
+        p1.start()
+        p2.start()
+        p3.start()
+        p4.start()
+        p5.start()
+        clock_cycle.join()
+        pc+=4
+else:
+    while(True):
+        fetch()
+        decode()
+        execute()
+        if terminate:
+            exit(1)
+        memory_access()
+        write_back()
+        print(pc)
+        clk += 1
+        print("Clock CYCLE:", clk, '\n')
     # print(instruction_memory)
     # print(data_memory)
 
