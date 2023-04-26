@@ -1,5 +1,5 @@
 '''
-This is the Phase 1 of Course Project to build a simulator that will execute RISCV-32I ISA in single cycle.
+This is the Phase 3 of Course Project to build a simulator that will execute RISCV-32I ISA in single cycle.
 
 -------------------------------------------------
 | Developer's Name   | Developer's Email ID     |
@@ -72,7 +72,7 @@ memory_table=[]
 
 
 def fetch_data_from_memory(address: int, num_bytes: int) -> bytes:
-    # Check if address is in data memory
+   
     if address in data_memory:
         # Fetch data from data memory
         data = data_memory[address:address+num_bytes]
